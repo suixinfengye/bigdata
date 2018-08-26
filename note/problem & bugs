@@ -1,0 +1,6 @@
+phoenix
+phoenix-spark整合失败
+
+hbase-spark整合失败
+可以在spark shell中读取hbase信息
+idea中导入hbase和spark依赖包冲突,无法导入相关类
