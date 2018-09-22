@@ -1,7 +1,7 @@
 package sample
 
 import org.apache.spark.sql.{SQLContext, SparkSession}
-//import org.apache.phoenix.spark._
+import org.apache.phoenix.spark._
 object PhoenixSpark {
   def main(args: Array[String]) {
 
@@ -13,7 +13,7 @@ object PhoenixSpark {
 
 
 //    spark.read.format("org.apache.phoenix.spark").option("table" ,"WEB_STAT").option("zkUrl", "localhost:2181").load().show()
-    spark.read.format("org.apache.phoenix.spark").option("table" ,"TEST_PERSON").option("zkUrl", "spark1:2181").load().show()
+    spark.read.format("org.apache.phoenix.spark").option("table" ,"WEB_STAT").option("zkUrl", "spark1:2181").load().show()
     spark.stop()
   }
 }

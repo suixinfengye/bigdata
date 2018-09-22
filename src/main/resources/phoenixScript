@@ -1,0 +1,16 @@
+CREATE TABLE doulist (
+  id INTEGER PRIMARY KEY ,
+  movieid varchar(16) ,
+  doulist_url varchar(128),
+  doulist_name varchar(128) ,
+  doulist_intr varchar(1024) ,
+  user_name varchar(32) ,
+  user_url varchar(128),
+  collect_num INTEGER ,
+  recommend_num INTEGER,
+  movie_num INTEGER,
+  doulist_cratedDate date ,
+  doulist_updatedDate date ,
+  created_time date ,
+  updated_time varchar(32)
+) SALT_BUCKETS=3;
