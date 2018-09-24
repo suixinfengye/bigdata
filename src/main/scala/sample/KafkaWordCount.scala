@@ -21,26 +21,27 @@ object KafkaWordCount {
 
     val spark = SparkSession
       .builder()
-//      .master("local")
+      .master("local")
       .appName("KafkaWordCount")
-      .config("spark.streaming.stopGracefullyOnShutdown","true")
+      .config("spark.streaming.stopGracefullyOnShutdown", "true")
       .getOrCreate()
 
     val kafkaParams = Map[String, Object](
 //      "bootstrap.servers" -> "localhost:9092",
-      "bootstrap.servers" -> "192.168.0.101:9092,192.168.0.107:9092,192.168.0.108:9092",
+            "bootstrap.servers" -> "192.168.0.101:9092,192.168.0.107:9092,192.168.0.108:9092",
       "key.deserializer" -> classOf[StringDeserializer],
       "value.deserializer" -> classOf[StringDeserializer],
       "group.id" -> "KafkaWordCountgroup",
       "auto.offset.reset" -> "latest",
       "enable.auto.commit" -> (true: java.lang.Boolean)
     )
-//    val topics = Array("KafkaWordCountTopicTest")
-    val topics = Array("test1")
+    //    val topics = Array("KafkaWordCountTopicTest")
+    val topics = Array("test-flume-topic")
     val ssc = new StreamingContext(spark.sparkContext, Seconds(5))
-//    ssc.checkpoint("hdfs://localhost:9000//spark//checkpoint")
-    ssc.checkpoint("hdfs://spark1:9000//spark//checkpoint")
-    //    ssc.checkpoint("/home/feng/software/code/bigdata/spark-warehouse")
+    //    ssc.checkpoint("hdfs://localhost:9000//spark//checkpoint")
+
+        ssc.checkpoint("hdfs://spark1:9000//spark//checkpoint")
+//    ssc.checkpoint("/home/feng/software/code/bigdata/spark-warehouse")
     val stream = KafkaUtils.createDirectStream[String, String](
       ssc,
       PreferBrokers,
@@ -48,7 +49,7 @@ object KafkaWordCount {
     )
 
 
-    stream.map(mapFunc = record => (record.key, record.value)).foreachRDD(r=>r.collect().foreach(t=>print("----------------------------------------"+t)))
+    stream.map(mapFunc = record => (record.key, record.value)).foreachRDD(r => r.collect().foreach(t => print("----------------------------------------" + t)))
 
     ssc.start()
     ssc.awaitTermination()

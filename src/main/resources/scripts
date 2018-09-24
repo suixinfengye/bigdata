@@ -1,0 +1,29 @@
+# python
+source /home/feng/software/python/venv/bin/activate
+cd /media/feng/资源/bigdata/doubanSpider/doubanSpider/spiders
+scrapy crawl doubanmovies -s JOBDIR=/media/feng/资源/bigdata/doubanSpider/file/job4
+
+# flume
+bin/flume-ng agent -n logser -c conf -f conf/flume_test.conf
+
+# kafka
+cd /usr/local/userlib/kafka/bin
+./kafka-server-start.sh -daemon ../config/server.properties
+./kafka-topics.sh --create --zookeeper 192.168.0.101:2181,192.168.0.107:2181,192.168.0.108:2181 --replication-factor 2
+--partitions 2 --topic test1
+./kafka-console-producer.sh --broker-list 192.168.0.101:9092,192.168.0.107:9092,192.168.0.108:9092 --topic test1
+./kafka-topics.sh --list --zookeeper 192.168.0.101:2181,192.168.0.107:2181,192.168.0.108:2181
+./kafka-console-consumer.sh --zookeeper 192.168.0.101:2181,192.168.0.107:2181,192.168.0.108:2181 --topic mysqlclustertest.test.tbl --from-beginning
+
+# Debezium
+bin/connect-distributed.sh config/connect-distributed.properties
+
+# mysql
+mysql -h192.168.0.100 -p3306 -udebezium -p
+
+# bigdata
+zkServer.sh start
+start-dfs.sh
+start-yarn.sh
+start-hbase.sh
+$spark/start-all.sh
