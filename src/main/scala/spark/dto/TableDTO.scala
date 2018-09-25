@@ -37,3 +37,6 @@ case class MovieEssay(id: Long, movieid: String, userName: String, userUrl: Stri
 
 
 
+case class Review(movieid:String,reviewid:String,content:String)
+
+
