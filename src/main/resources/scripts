@@ -26,4 +26,5 @@ zkServer.sh start
 start-dfs.sh
 start-yarn.sh
 start-hbase.sh
+./sbin/start-history-server.sh
 $spark/start-all.sh

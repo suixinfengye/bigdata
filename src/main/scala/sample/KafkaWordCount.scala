@@ -2,11 +2,13 @@
 package sample
 
 import org.apache.kafka.common.serialization.StringDeserializer
+import org.apache.spark.internal.Logging
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.apache.spark.streaming.kafka010._
 import org.apache.spark.streaming.kafka010.LocationStrategies.PreferBrokers
 import org.apache.spark.streaming.kafka010.ConsumerStrategies.Subscribe
+
 //ps -ef | grep spark |  grep KafkaWordCount | awk '{print $2}'   | xargs kill  -SIGTERM
 
 //./bin/spark-submit \
@@ -15,7 +17,7 @@ import org.apache.spark.streaming.kafka010.ConsumerStrategies.Subscribe
 //--executor-memory 1G \
 //--total-executor-cores 2 \
 ///home/feng/software/code/bigdata/out/artifacts/bigdata/bigdata.jar
-object KafkaWordCount {
+object KafkaWordCount extends Logging {
 
   def main(args: Array[String]) {
 
@@ -40,14 +42,14 @@ object KafkaWordCount {
     val ssc = new StreamingContext(spark.sparkContext, Seconds(5))
     //    ssc.checkpoint("hdfs://localhost:9000//spark//checkpoint")
 
-        ssc.checkpoint("hdfs://spark1:9000//spark//checkpoint")
-//    ssc.checkpoint("/home/feng/software/code/bigdata/spark-warehouse")
+//        ssc.checkpoint("hdfs://spark1:9000//spark//checkpoint")
+    ssc.checkpoint("/home/feng/software/code/bigdata/spark-warehouse")
     val stream = KafkaUtils.createDirectStream[String, String](
       ssc,
       PreferBrokers,
       Subscribe[String, String](topics, kafkaParams)
     )
-
+  logInfo("ssssssss")
 
     stream.map(mapFunc = record => (record.key, record.value)).foreachRDD(r => r.collect().foreach(t => print("----------------------------------------" + t)))
 

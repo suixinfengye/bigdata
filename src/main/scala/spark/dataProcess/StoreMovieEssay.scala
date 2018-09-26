@@ -9,7 +9,6 @@ import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.apache.spark.streaming.kafka010.ConsumerStrategies.Subscribe
 import org.apache.spark.streaming.kafka010.KafkaUtils
 import org.apache.spark.streaming.kafka010.LocationStrategies.PreferBrokers
-import sample.CommonTest.logInfo
 import spark.dto.Review
 import utils.{CommomConfig, LoggerConfig}
 
@@ -59,8 +58,7 @@ object StoreMovieEssay extends Logging {
 
   def processData(spark: SparkSession, stream: InputDStream[ConsumerRecord[String, String]]): Unit = {
     stream.map(mapFunc = record => regx(record.value)).filter(list=>list.nonEmpty).foreachRDD(r => r.collect().foreach
-    (println
-    (_)))
+    (t=>logInfo(t.toString())))
   }
 
   /**
