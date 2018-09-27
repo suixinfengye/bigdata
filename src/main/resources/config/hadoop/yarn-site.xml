@@ -71,12 +71,16 @@
 
 <property>
     <name>yarn.nodemanager.resource.memory-mb</name>
-    <value>1024</value>
+    <value>2048</value>
 </property>
 <property>
     <name>yarn.nodemanager.resource.cpu-vcores</name>
-    <value>1</value>
+    <value>2</value>
  </property>
+ <property>
+    <name>yarn.scheduler.maximum-allocation-mb</name>
+    <value>2000</value>
+</property>
 
 <property>
 <name>yarn.resourcemanager.resource-tracker.address.rm1</name>
@@ -85,6 +89,21 @@
 <property>
 <name>yarn.resourcemanager.resource-tracker.address.rm2</name>
 <value>spark2:8031</value>
+</property>
+
+<property>
+        <name>yarn.log-aggregation-enable</name>
+        <value>true</value>
+</property>
+
+<property>
+        <name>yarn.log.server.url</name>
+        <value>http://spark1:19888/jobhistory/logs</value>
+</property>
+<property>
+	<!-- 保存一周 -->
+        <name>yarn.log-aggregation.retain-seconds</name>
+        <value>604800</value>
 </property>
 
 </configuration>
