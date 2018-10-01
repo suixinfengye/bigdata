@@ -18,5 +18,6 @@ object CommomConfig {
 
   val HBASE_ZOOKEEPER_QUORUM_TEST = "localhost"
 
-  var isTest = true
+  //当前是否为测试环境
+  var isTest = false
 }

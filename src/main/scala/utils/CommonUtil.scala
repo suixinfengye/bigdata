@@ -22,13 +22,12 @@ object CommonUtil {
     * @return
     */
   def getWriteHbaseConfig(spark: SparkSession, tableName: String): JobConf = {
-    var zookeeperQuorum = _
+    var zookeeperQuorum: String = CommomConfig.HBASE_ZOOKEEPER_QUORUM
     if (CommomConfig.isTest) {
       zookeeperQuorum = CommomConfig.HBASE_ZOOKEEPER_QUORUM_TEST
-    } else {
-      zookeeperQuorum = CommomConfig.HBASE_ZOOKEEPER_QUORUM
     }
-    logger.info("zookeeperQuorum is :" + zookeeperQuorum)
+    logger.info("zookeeperQuorum is : " + zookeeperQuorum)
+
     val conf = HBaseConfiguration.create()
     conf.set("hbase.zookeeper.property.clientPort", "2181"); //设置zookeeper client端口
     conf.set("hbase.zookeeper.quorum", zookeeperQuorum)
@@ -38,25 +37,28 @@ object CommonUtil {
     jobConf
   }
 
-  def getKafkaServers(): String = {
-    var kafkaServers = _
+  def getKafkaServers: String = {
+    var kafkaServers: String = CommomConfig.BOOTSTRAP_SERVERS
     if (CommomConfig.isTest) {
       kafkaServers = CommomConfig.BOOTSTRAP_SERVERS_TEST
-    } else {
-      kafkaServers = CommomConfig.BOOTSTRAP_SERVERS
     }
-    logger.info("kafkaServers is :" + kafkaServers)
+    logger.info("kafkaServers is : " + kafkaServers)
     kafkaServers
   }
 
-  def getCheckpointDir(): String = {
-    var checkpointDir = _
+  def getCheckpointDir: String = {
+    var checkpointDir: String = CommomConfig.CHECKPOINT_DIR
     if (CommomConfig.isTest) {
       checkpointDir = CommomConfig.CHECKPOINT_DIR_LOCAL_TEST
-    } else {
-      checkpointDir = CommomConfig.CHECKPOINT_DIR
     }
-    logger.info("checkpointDir is :" + checkpointDir)
+    logger.info("checkpointDir is : " + checkpointDir)
     checkpointDir
+  }
+
+  /**
+    * 设置当前为测试环境
+    */
+  def setTestEvn: Unit = {
+    CommomConfig.isTest = true
   }
 }

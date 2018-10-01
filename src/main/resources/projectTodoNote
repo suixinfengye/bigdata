@@ -1,0 +1,93 @@
+想要对比分析各个分布式和集群的实现方式 fast failover机制 ha
+MQ
+zookeeper
+redis
+kafka
+hadoop
+hbase:https://blog.csdn.net/xiangxizhishi/article/details/75388971
+hive
+spark
+flume
+storm
+
+小知识点:
+bloom filter
+Avro Files
+Parquet
+redis sentinel vs zookeeper
+
+redis修改信息的一致性问题
+
+
+验证码识别
+
+
+工作流调度器:azkaban
+hbase+redis:存影评? 存储用户电影标签数据? redis存储的movieid 和文章标题,hbase存储文章内容
+Hbase适合需对数据进行随机读操作或者随机写操作、大数据上高并发操作:把短评和影评存储在hbase中吧
+rowkey:movie(按key排序的)+影评url,需要用到timestamp吗?
+hbase的应用场景是什么,redis中对应的详细信息
+redis:主要存基础信息
+存储结构:
+redis:list结构 按电影存储文章:lpush movieid articleid articleid
+hbase:map结构 articleid title content timestamp
+
+zookeeper
+
+mysql并发访问限制->将整个mysql的表加载到内存中
+flume是日志文本采集 对于文件的变动可以实时更新,在本场景中没什么用,重点是没有实时流数据
+mysql->file/table(每个表格一个文件)->flume->kafka->hadoop/spark->hive/mysql
+hive-> sqoop->mysql
+要不要文件大小限制,达到一定要求后分割文件,需要在不同的虚拟机上读取mysql数据库文件
+
+
+Flume->kafka->hadoop
+sqoop/Flume -> hadoop->hive->spark
+hbase怎么用
+数据清洗:hadoop
+生成的数据存到hive表中
+spark数据分析
+
+聚类分组统计
+算出每篇评论的日期比例 10% 20% 30% 40% 50% 60% 100%  : hive
+算出每段时间内的 词云:找出水军,打标签麻烦
+
+电影画像:其实电影类型标签就是电影画像了
+可以对每一个电影生成词云=短评+影评,和电影标签对比,分词,停止词等  评论情感分析
+
+图片:电影海报和meizitu图片分类
+
+我看过的电影中,按相同演员,相同编剧,导演出现次数排序
+最高的电影是哪个
+
+我的电影库中的年度电影榜单:好片&烂片:定个标准
+hive 分组topn
+
+关于实时流式计算 从mysql中生成?
+可以试着用python将mysql数据导出flume/kafka->spark structure streaming
+主要用于实时计算,主要是推荐和分类,定时报表应该不需要吧
+
+
+
+电影特征:
+评分 日期 导演 演员 编剧 etc
+标签 top10 词云 评论数和回复数
+豆列中包含的次数 豆列电影评分均值 豆列看过的电影数
+影评评分
+
+找出水军:已看电影 评分,确认下
+可以找个人资料,然后看已看过的影视,拿出其评分 这里可以拿到电影原始评分和他自己的评分  有对比  hive:电影评分均值差--过高可能就是水军 评论日期 和烂片比
+
+代码样例:
+mapreduce:http://hadoop.apache.org/docs/stable/hadoop-mapreduce-client/hadoop-mapreduce-client-core/MapReduceTutorial.html#Example:_WordCount_v2.0
+hbase:http://hbase.apache.org/book.html#_examples
+	http://hbase.apache.org/book.html#mapreduce.example
+	http://hbase.apache.org/book.html#_basic_spark
+	http://hbase.apache.org/book.html#_junit
+	http://hbase.apache.org/book.html#cp_example
+```
+hadoop-daemons.sh start zkfc
+spark3: Exception in thread "main" org.apache.hadoop.HadoopIllegalArgumentException: Could not get the namenode ID of this node. You may run zkfc on the node other than namenode.
+spark3:         at org.apache.hadoop.hdfs.tools.DFSZKFailoverController.create(DFSZKFailoverController.java:128)
+spark3:         at org.apache.hadoop.hdfs.tools.DFSZKFailoverController.main(DFSZKFailoverController.java:177)
+```

@@ -39,6 +39,8 @@ object StoreMovieEssay extends Logging {
       .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
       .getOrCreate()
 
+    //设置当前为测试环境
+    CommonUtil.setTestEvn
 
     // config kafka
     val kafkaParams = Map[String, Object](
@@ -67,6 +69,22 @@ object StoreMovieEssay extends Logging {
   }
 
   /**
+    * TODO
+    * 1.统计每小时入库总数,movie 评论入库数,放入phoenix表中
+    *   表设计: steamingRecord(id,startTIme,endTime,recordUpdateCount,recordType,recordid)
+    *   recordType: MED(movie eassy Duration),一个长期间内的入库数
+    *               MEDM(movie eassy Duration for a movie),一个长期间内某个电影的影评入库数
+    *   recordid : 某个recordType具体类型的标识符,如movieId
+    *
+    * 2. 如何获取关闭StreamingContext信息,处理入库信息后再关闭
+    * 3. 状态的获取与更新,防止内存溢出,要不要clean
+    */
+  def streamingOpr: Unit ={
+
+  }
+
+
+  /**
     * 把记录存入hbase
     *
     * @param spark
@@ -77,8 +95,9 @@ object StoreMovieEssay extends Logging {
       r =>  //List[List[Review]]
         if (!r.isEmpty()) {
           val reviewList = r.filter(list => list.nonEmpty).reduce(_ ++ _)
-          logInfo("save reviewList:"+reviewList.size)
-          val jobConf = CommonUtil.getWriteHbaseConfig(spark,"test")
+          logInfo("save reviewList to hbase:"+reviewList.size)
+
+          val jobConf = CommonUtil.getWriteHbaseConfig(spark,getTableName)
           spark.sparkContext.parallelize(reviewList).map(converToPut).saveAsHadoopDataset(jobConf)
         }
         logInfo("rdd[list[list[Review]]] is empty"+r.id)
@@ -127,12 +146,21 @@ object StoreMovieEssay extends Logging {
     (new ImmutableBytesWritable, put)
   }
 
-  def getTopic:String={
-    val topics = Array("test-flume-topic")
+  def getTableName:String={
+    var tableName = "test"
     if (CommomConfig.isTest){
-      "test-flume-topic"
-    }else{
-      "movie-essay-topic"
+      tableName = "test-flume-topic"
     }
+    logInfo("tableName:"+tableName)
+    tableName
+  }
+
+  def getTopic:String={
+    var topics:String = "movie-essay-topic"
+    if (CommomConfig.isTest){
+      topics = "test-flume-topic"
+    }
+    logInfo("topic:"+topics)
+    topics
   }
 }
