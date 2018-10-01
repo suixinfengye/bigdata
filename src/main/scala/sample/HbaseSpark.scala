@@ -45,7 +45,6 @@ object HbaseSpark extends Logging {
     val hbaseRDD = spark.sparkContext.newAPIHadoopRDD(conf, classOf[org.apache.hadoop.hbase.mapreduce.TableInputFormat], classOf[org.apache.hadoop.hbase.io.ImmutableBytesWritable], classOf[org.apache.hadoop.hbase.client.Result])
     val value: Long = hbaseRDD.count()
     logInfo("---------------------------============================----------------------------------: " + value)
-//    /
   }
 
   def writeHbase(spark:SparkSession,conf: Configuration):Unit ={

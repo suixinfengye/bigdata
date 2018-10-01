@@ -4,6 +4,7 @@ package sample
 import org.apache.spark.internal.Logging
 import org.slf4j.LoggerFactory
 import spark.dto.Review
+import utils.{CommomConfig, CommonUtil}
 
 import scala.collection.mutable._
 
@@ -17,6 +18,19 @@ object CommonTest {
   def main(args: Array[String]): Unit = {
     val test: String = "fileN/media/feng/资源/bigdata/test/1291559 �$https://movie.douban.com/review/16456/:::弥新永恒不变的。\n---==---\nfileN/media/feng/资源/bigdata/test/1291560 �\u001Chttps://movie.douban.com/review/1118154/:::影片开始的的名义\n---==---"
     regx(test).foreach(r => logger.info(r.toString))
+    reverse("21565")
+    testConfig
+  }
+
+  def testConfig(): Unit ={
+    logger.info(CommonUtil.getKafkaServers)
+    CommomConfig.isTest = false
+    logger.info(CommonUtil.getKafkaServers)
+  }
+
+  def reverse(movieid:String)={
+    logger.info(movieid)
+    logger.info(movieid.reverse)
   }
 
   /**
