@@ -4,9 +4,12 @@ package sample
 import org.apache.spark.internal.Logging
 import org.slf4j.LoggerFactory
 import spark.dto.Review
-import utils.{CommomConfig, CommonUtil}
+import utils.{CommomConfig, CommonUtil, MyDateUtil}
 
 import scala.collection.mutable._
+import java.util.Date
+
+import org.apache.commons.lang.time.FastDateFormat
 
 /**
   * feng
@@ -16,19 +19,26 @@ object CommonTest {
   val logger = LoggerFactory.getLogger(this.getClass)
 
   def main(args: Array[String]): Unit = {
-    val test: String = "fileN/media/feng/资源/bigdata/test/1291559 �$https://movie.douban.com/review/16456/:::弥新永恒不变的。\n---==---\nfileN/media/feng/资源/bigdata/test/1291560 �\u001Chttps://movie.douban.com/review/1118154/:::影片开始的的名义\n---==---"
-    regx(test).foreach(r => logger.info(r.toString))
-    reverse("21565")
-    testConfig
+    //    val test: String = "fileN/media/feng/资源/bigdata/test/1291559 �$https://movie.douban.com/review/16456/:::弥新永恒不变的。\n---==---\nfileN/media/feng/资源/bigdata/test/1291560 �\u001Chttps://movie.douban.com/review/1118154/:::影片开始的的名义\n---==---"
+    //    regx(test).foreach(r => logger.info(r.toString))
+    //    reverse("21565")
+    //    testConfig
+    testDateFormat
   }
 
-  def testConfig(): Unit ={
+  def testDateFormat= {
+    val fdf: FastDateFormat = FastDateFormat.getInstance("MM-dd")
+    logger.info(fdf.format(new Date()))
+
+  }
+
+  def testConfig(): Unit = {
     logger.info(CommonUtil.getKafkaServers)
     CommomConfig.isTest = false
     logger.info(CommonUtil.getKafkaServers)
   }
 
-  def reverse(movieid:String)={
+  def reverse(movieid: String) = {
     logger.info(movieid)
     logger.info(movieid.reverse)
   }

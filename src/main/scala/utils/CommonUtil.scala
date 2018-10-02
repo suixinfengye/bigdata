@@ -55,6 +55,15 @@ object CommonUtil {
     checkpointDir
   }
 
+  def getZkurl: String = {
+    var zkurl = CommomConfig.ZK_URL
+    if (CommomConfig.isTest) {
+      zkurl = CommomConfig.ZK_URL_TEST
+    }
+    logger.info("zkurl is : " + zkurl)
+    zkurl
+  }
+
   /**
     * 设置当前为测试环境
     */

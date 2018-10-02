@@ -18,6 +18,10 @@ object CommomConfig {
 
   val HBASE_ZOOKEEPER_QUORUM_TEST = "localhost"
 
+  val ZK_URL = "spark1:2181,spark2:2181,spark3:2181"
+
+  val ZK_URL_TEST = "192.168.0.100:2181"
+
   //当前是否为测试环境
   var isTest = false
 }
