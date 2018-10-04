@@ -45,6 +45,7 @@
             <version>4.14.0-HBase-1.4</version>
         </dependency>
 
+
         <!-- https://mvnrepository.com/artifact/io.debezium/debezium-core -->
         <dependency>
             <groupId>io.debezium</groupId>

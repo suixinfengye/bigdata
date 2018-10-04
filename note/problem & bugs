@@ -4,3 +4,18 @@ phoenix-spark整合失败
 hbase-spark整合失败
 可以在spark shell中读取hbase信息
 idea中导入hbase和spark依赖包冲突,无法导入相关类
+
+```scala
+a.saveToPhoenix(
+      "STEAMING_RECORD",
+      Seq("ID", "TIME", "RECORDCOUNT", "RECORDTYPE", "CREATED_TIME"),
+      zkUrl = Some("localhost:2181")
+    )
+```
+```
+Exception in thread "main" java.lang.IllegalArgumentException: Can not create a Path from an empty string
+	at org.apache.hadoop.fs.Path.checkPathArg(Path.java:126)
+```
+
+to read
+https://blog.csdn.net/silentwolfyh/article/details/70208954

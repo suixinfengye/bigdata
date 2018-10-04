@@ -1,5 +1,6 @@
 *.class
 *.log
+*.log.*
 *.jar
 *.iml 
 .idea 
@@ -9,9 +10,11 @@ ${project.basedir}/*
 spark-warehouse/*
 target/*
 .idea/*
+logs/*
 
 out
 ${project.basedir}
 spark-warehouse
 target
 bigdata
+logs

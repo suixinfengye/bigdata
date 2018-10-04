@@ -28,3 +28,6 @@ start-yarn.sh
 start-hbase.sh
 ./sbin/start-history-server.sh
 $spark/start-all.sh
+
+# phoenix
+$phoenix/bin/sqlline.py 192.168.0.101:2181,192.168.0.107:2181,192.168.0.108:2181

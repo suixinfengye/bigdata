@@ -19,7 +19,8 @@ import java.util.Date
 
 import org.apache.phoenix.spark._
 import org.apache.spark.rdd.RDD
-import org.apache.spark.util.LongAccumulator
+import org.apache.spark.util.{AccumulatorV2, LongAccumulator}
+import spark.dataProcess.StoreMovieEssay.logInfo
 
 import scala.collection.mutable.ListBuffer
 
@@ -34,7 +35,7 @@ import scala.collection.mutable.ListBuffer
   */
 object StoreMovieEssay extends Logging {
 
-  val batchInterval: Int = 12
+  val batchInterval: Int = 3
 
   def main(args: Array[String]): Unit = {
     val spark = SparkSession
@@ -71,12 +72,24 @@ object StoreMovieEssay extends Logging {
       Subscribe[String, String](topics, kafkaParams)
     )
 
-//    spark.sparkContext.broadcast(MyDateUtil)
+    val acc: LongAccumulator = spark.sparkContext.longAccumulator("movieCount")
 
-    processData(spark, stream)
+    processData(spark, stream,acc)
+
+    spark.sparkContext.addSparkListener(new MovieEssaySparkListener(spark,acc))
 
     ssc.start()
     ssc.awaitTermination()
+
+//    Runtime.getRuntime().addShutdownHook(new Thread() {
+//      override def run() {
+//        logInfo("Shutting down StoreMovieEssay streaming app...")
+//
+//        logInfo("Shutdown of StoreMovieEssay streaming app complete.")
+//      }
+//    }).
+
+
   }
 
 
@@ -86,9 +99,9 @@ object StoreMovieEssay extends Logging {
     * @param spark
     * @param stream
     */
-  def processData(spark: SparkSession, stream: InputDStream[ConsumerRecord[String, String]]): Unit = {
+  def processData(spark: SparkSession, stream: InputDStream[ConsumerRecord[String, String]],acc:LongAccumulator): Unit = {
     val batchRecordDS = stream.map(mapFunc = record => regx(record.value)).filter(list => list.nonEmpty).cache()
-    saveIntoHbase(batchRecordDS, spark)
+    saveIntoHbase(batchRecordDS, spark,acc)
   }
 
   /**
@@ -97,14 +110,15 @@ object StoreMovieEssay extends Logging {
     * @param batchRecordDS
     * @param spark
     */
-  def saveIntoHbase(batchRecordDS: DStream[List[Review]], spark: SparkSession): Unit = {
+  def saveIntoHbase(batchRecordDS: DStream[List[Review]], spark: SparkSession,acc:LongAccumulator): Unit = {
+
     //save into hbase
     batchRecordDS.foreachRDD {
       r => //List[List[Review]]
         if (!r.isEmpty()) {
           val reviewList: List[Review] = r.filter(list => list.nonEmpty).reduce(_ ++ _)
           logInfo("save reviewList to hbase:" + reviewList.size)
-
+          acc.add(reviewList.size)
           val jobConf = CommonUtil.getWriteHbaseConfig(spark, getTableName)
           spark.sparkContext.parallelize(reviewList).map(converToPut).saveAsHadoopDataset(jobConf)
         }
@@ -135,15 +149,14 @@ object StoreMovieEssay extends Logging {
       iter: Iterator[(String, List[Review])] =>
         val date = new Date
         val dateStr = MyDateUtil.dateFormat(date)
-        val simpleDateStr = MyDateUtil.simpleDateFormat(date)
-        val recordType = MyConstant.RECORD_TYPE
+        val recordType = MyConstant.RECORD_TYPE_MEDM
         //t:(String, List[Review])
         //主键设置为 movieid+timestamp, 每一个批次处理时,都是按movieid分组的,一个批次同一个movieid只会有一个
-        iter.map(t => SteamingRecord(t._1 + dateStr, dateStr, t._2.size, recordType, t._1))
+        iter.map { t =>
+//          acc.add(t._2.size)
+          SteamingRecord(t._1 + dateStr, dateStr, t._2.size, recordType, t._1)
+        }
     }.cache()
-
-    //用Accumulator 还是用 stateful api呢
-//    val acc: LongAccumulator = spark.sparkContext.longAccumulator("movieCount")
 
     //入库
     recordAgg.foreachRDD {
