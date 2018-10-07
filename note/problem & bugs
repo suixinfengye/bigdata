@@ -13,8 +13,57 @@ a.saveToPhoenix(
     )
 ```
 ```
-Exception in thread "main" java.lang.IllegalArgumentException: Can not create a Path from an empty string
+[ERROR] Aborting job job_20181007220846_0001.
+java.lang.IllegalArgumentException: Can not create a Path from an empty string
 	at org.apache.hadoop.fs.Path.checkPathArg(Path.java:126)
+	at org.apache.hadoop.fs.Path.<init>(Path.java:134)
+	at org.apache.hadoop.fs.Path.<init>(Path.java:88)
+	at org.apache.spark.internal.io.HadoopMapReduceCommitProtocol.absPathStagingDir(HadoopMapReduceCommitProtocol.scala:58)
+	at org.apache.spark.internal.io.HadoopMapReduceCommitProtocol.commitJob(HadoopMapReduceCommitProtocol.scala:132)
+	at org.apache.spark.internal.io.SparkHadoopMapReduceWriter$.write(SparkHadoopMapReduceWriter.scala:101)
+	at org.apache.spark.rdd.PairRDDFunctions$$anonfun$saveAsNewAPIHadoopDataset$1.apply$mcV$sp(PairRDDFunctions.scala:1085)
+	at org.apache.spark.rdd.PairRDDFunctions$$anonfun$saveAsNewAPIHadoopDataset$1.apply(PairRDDFunctions.scala:1085)
+	at org.apache.spark.rdd.PairRDDFunctions$$anonfun$saveAsNewAPIHadoopDataset$1.apply(PairRDDFunctions.scala:1085)
+	at org.apache.spark.rdd.RDDOperationScope$.withScope(RDDOperationScope.scala:151)
+	at org.apache.spark.rdd.RDDOperationScope$.withScope(RDDOperationScope.scala:112)
+	at org.apache.spark.rdd.RDD.withScope(RDD.scala:362)
+	at org.apache.spark.rdd.PairRDDFunctions.saveAsNewAPIHadoopDataset(PairRDDFunctions.scala:1084)
+	at org.apache.spark.rdd.PairRDDFunctions$$anonfun$saveAsNewAPIHadoopFile$2.apply$mcV$sp(PairRDDFunctions.scala:1003)
+	at org.apache.spark.rdd.PairRDDFunctions$$anonfun$saveAsNewAPIHadoopFile$2.apply(PairRDDFunctions.scala:994)
+	at org.apache.spark.rdd.PairRDDFunctions$$anonfun$saveAsNewAPIHadoopFile$2.apply(PairRDDFunctions.scala:994)
+	at org.apache.spark.rdd.RDDOperationScope$.withScope(RDDOperationScope.scala:151)
+	at org.apache.spark.rdd.RDDOperationScope$.withScope(RDDOperationScope.scala:112)
+	at org.apache.spark.rdd.RDD.withScope(RDD.scala:362)
+	at org.apache.spark.rdd.PairRDDFunctions.saveAsNewAPIHadoopFile(PairRDDFunctions.scala:994)
+	at org.apache.phoenix.spark.ProductRDDFunctions.saveToPhoenix(ProductRDDFunctions.scala:51)
+	at sample.PhoenixSpark$.main(PhoenixSpark.scala:35)
+	at sample.PhoenixSpark.main(PhoenixSpark.scala)
+```
+
+加入
+```
+val conf = HBaseConfiguration.create()
+      conf.set("mapreduce.output.fileoutputformat.outputdir","hdfs://localhost:9000/tmp/mapreduceOutput");
+```
+
+
+
+```
+ConnectionQueryServicesImpl.logger.info("HConnection established. Stacktrace for informational purposes: " + connection
++ " " +  LogUtil.getCallerStackTrace());
+```
+日志如下, 不是bug, 只是打印调用栈
+```
+HConnection established. Stacktrace for informational purposes: hconnection-0x117b0114 java.lang.Thread.getStackTrace(Thread.java:1559)
+org.apache.phoenix.util.LogUtil.getCallerStackTrace(LogUtil.java:55)
+org.apache.phoenix.query.ConnectionQueryServicesImpl.openConnection(ConnectionQueryServicesImpl.java:427)
+org.apache.phoenix.query.ConnectionQueryServicesImpl.access$400(ConnectionQueryServicesImpl.java:267)
+org.apache.phoenix.query.ConnectionQueryServicesImpl$12.call(ConnectionQueryServicesImpl.java:2515)
+org.apache.phoenix.query.ConnectionQueryServicesImpl$12.call(ConnectionQueryServicesImpl.java:2491)
+org.apache.phoenix.util.PhoenixContextExecutor.call(PhoenixContextExecutor.java:76)
+org.apache.phoenix.query.ConnectionQueryServicesImpl.init(ConnectionQueryServicesImpl.java:2491)
+org.apache.phoenix.jdbc.PhoenixDriver.getConnectionQueryServices(PhoenixDriver.java:255)
+org.apache.phoenix.jdbc.PhoenixEmbeddedDriver.createConnection(PhoenixEmbeddedDriver.java:150)
 ```
 
 to read
