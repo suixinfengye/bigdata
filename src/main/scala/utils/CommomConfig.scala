@@ -22,6 +22,12 @@ object CommomConfig {
 
   val ZK_URL_TEST = "192.168.0.100:2181"
 
+  val MYSQL_URL_TEST = "jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=utf-8&useSSL=false"
+
+  val MYSQL_USER = "root"
+
+  val MYSQL_PASSWORD = "feng"
+
   //当前是否为测试环境
   var isTest = false
 }

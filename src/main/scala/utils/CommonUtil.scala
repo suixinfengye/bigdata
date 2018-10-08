@@ -64,6 +64,16 @@ object CommonUtil {
     zkurl
   }
 
+  def getMysqlurl: String = {
+    var mysqlUrl = CommomConfig.MYSQL_URL_TEST
+    if (CommomConfig.isTest) {
+      mysqlUrl = CommomConfig.MYSQL_URL_TEST
+    }
+    logger.info("mysqlUrl is : " + mysqlUrl)
+    mysqlUrl
+  }
+
+
   /**
     * 设置当前为测试环境
     */

@@ -1,6 +1,8 @@
 package spark.dataProcess
 
 
+import java.sql.Timestamp
+
 import org.apache.hadoop.hbase.client.Put
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable
 import org.apache.hadoop.hbase.util.Bytes
@@ -9,7 +11,7 @@ import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.spark.internal.Logging
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.streaming.dstream.{DStream, InputDStream}
-import org.apache.spark.streaming.{Seconds, StreamingContext, Time}
+import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.apache.spark.streaming.kafka010.ConsumerStrategies.Subscribe
 import org.apache.spark.streaming.kafka010.KafkaUtils
 import org.apache.spark.streaming.kafka010.LocationStrategies.PreferBrokers
@@ -19,8 +21,7 @@ import java.util.Date
 
 import org.apache.phoenix.spark._
 import org.apache.spark.rdd.RDD
-import org.apache.spark.util.{AccumulatorV2, LongAccumulator}
-import spark.dataProcess.StoreMovieEssay.logInfo
+import org.apache.spark.util.LongAccumulator
 
 import scala.collection.mutable.ListBuffer
 
@@ -29,7 +30,7 @@ import scala.collection.mutable.ListBuffer
   * hbase key为 reverse(movieid)-reviewid
   *
   * ./kafka-topics.sh --create --zookeeper 192.168.0.101:2181,192.168.0.107:2181,192.168.0.108:2181 --replication-factor 2 --partitions 2 --topic movie-essay-topic
-  *
+  * bin/flume-ng agent -n logser -c conf -f conf/flume_test.conf
   * feng
   * 18-9-24
   */
@@ -74,21 +75,12 @@ object StoreMovieEssay extends Logging {
 
     val acc: LongAccumulator = spark.sparkContext.longAccumulator("movieCount")
 
-    processData(spark, stream,acc)
+    processData(spark, stream, acc)
 
-    spark.sparkContext.addSparkListener(new MovieEssaySparkListener(spark,acc))
+    spark.sparkContext.addSparkListener(new MovieEssaySparkListener(spark, acc))
 
     ssc.start()
     ssc.awaitTermination()
-
-//    Runtime.getRuntime().addShutdownHook(new Thread() {
-//      override def run() {
-//        logInfo("Shutting down StoreMovieEssay streaming app...")
-//
-//        logInfo("Shutdown of StoreMovieEssay streaming app complete.")
-//      }
-//    }).
-
 
   }
 
@@ -99,9 +91,9 @@ object StoreMovieEssay extends Logging {
     * @param spark
     * @param stream
     */
-  def processData(spark: SparkSession, stream: InputDStream[ConsumerRecord[String, String]],acc:LongAccumulator): Unit = {
+  def processData(spark: SparkSession, stream: InputDStream[ConsumerRecord[String, String]], acc: LongAccumulator): Unit = {
     val batchRecordDS = stream.map(mapFunc = record => regx(record.value)).filter(list => list.nonEmpty).cache()
-    saveIntoHbase(batchRecordDS, spark,acc)
+    saveIntoHbase(batchRecordDS, spark, acc)
   }
 
   /**
@@ -110,7 +102,7 @@ object StoreMovieEssay extends Logging {
     * @param batchRecordDS
     * @param spark
     */
-  def saveIntoHbase(batchRecordDS: DStream[List[Review]], spark: SparkSession,acc:LongAccumulator): Unit = {
+  def saveIntoHbase(batchRecordDS: DStream[List[Review]], spark: SparkSession, acc: LongAccumulator): Unit = {
 
     //save into hbase
     batchRecordDS.foreachRDD {
@@ -153,8 +145,8 @@ object StoreMovieEssay extends Logging {
         //t:(String, List[Review])
         //主键设置为 movieid+timestamp, 每一个批次处理时,都是按movieid分组的,一个批次同一个movieid只会有一个
         iter.map { t =>
-//          acc.add(t._2.size)
-          SteamingRecord(t._1 + dateStr, dateStr, t._2.size, recordType, t._1)
+          SteamingRecord(t._1 + dateStr, dateStr, t._2.size, recordType, t._1, new Timestamp(date.getTime
+          ()), null)
         }
     }.cache()
 

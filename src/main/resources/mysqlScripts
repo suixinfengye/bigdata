@@ -1,0 +1,9 @@
+CREATE TABLE steaming_record (
+  `id` int(11) PRIMARY KEY AUTO_INCREMENT ,
+  `time` varchar(32),
+  `recordCount` int(11),
+  `recordType` varchar(16),
+  `batchRecordId` varchar(32),
+  `created_time` datetime,
+  `updated_time` datetime
+)

@@ -1,6 +1,5 @@
 package spark.dataProcess
 
-import java.util.Date
 
 import org.apache.spark.internal.Logging
 import org.apache.spark.rdd.RDD
@@ -9,33 +8,55 @@ import org.apache.spark.sql.SparkSession
 import org.apache.spark.util.LongAccumulator
 import org.apache.phoenix.spark._
 import spark.dto.SteamingRecord
-import utils.{MyConstant, MyDateUtil}
+import utils.{MyConstant, MyDateUtil, MysqlUtil}
+import java.sql.{PreparedStatement, SQLException, Timestamp}
+import java.util.Date
+
+import org.slf4j.LoggerFactory
+import sample.MysqlTest.logger
+
 
 /**
   * 在streaming application关闭时,插入保存记录
   * feng
   * 18-10-4
   */
-class MovieEssaySparkListener(spark:SparkSession,acc: LongAccumulator) extends SparkListener with Logging {
+class MovieEssaySparkListener(spark: SparkSession, acc: LongAccumulator) extends SparkListener with Logging {
 
+  val logger = LoggerFactory.getLogger(this.getClass)
+
+  /**
+    * 在streaming application关闭时,插入保存记录
+    * 统计在整个streaming 运行期间读取的记录数
+    *
+    * @param applicationEnd
+    */
   override def onApplicationEnd(applicationEnd: SparkListenerApplicationEnd): Unit = {
     val date = new Date
     val dateStr = MyDateUtil.dateFormat(date)
     val recordType = MyConstant.RECORD_TYPE_MED
 
     logInfo("---------------onApplicationEnd-----------------")
-    val dataSet = List(("45655",dateStr,acc.value,recordType,date))
 
-//    SteamingRecord("MovieEssay" + dateStr, dateStr, acc.value, recordType, t._1)
-//    val dataSet = List(Aa(1), Aa(2))
-    val a= spark.sparkContext
-      .parallelize(dataSet)
-    a.saveToPhoenix(
-      "STEAMING_RECORD",
-      Seq("ID", "TIME", "RECORDCOUNT","RECORDTYPE","CREATED_TIME"),
-      zkUrl = Some("localhost:2181")
-    )
+    val record = SteamingRecord(null, dateStr, acc.value, recordType, "Essay_MED", new Timestamp(date.getTime
+    ()), null)
 
-//    save to mysql
+    val con = MysqlUtil.getCon
+
+    try {
+      val pstmt: PreparedStatement = con.prepareStatement("INSERT INTO steaming_record(time, recordCount," +
+        " recordType, batchRecordId,created_time) VALUES(?,?,?,?,?)")
+      pstmt.setString(1, record.time)
+      pstmt.setInt(2, 10)
+      pstmt.setString(3, record.recordType)
+      pstmt.setString(4, record.batchRecordId)
+      pstmt.executeUpdate
+    } catch {
+      case e: SQLException =>
+        logger.error(e.getMessage)
+    } finally {
+      MysqlUtil.colseConnection(con)
+    }
   }
+
 }

@@ -20,6 +20,7 @@ object PhoenixSpark {
       .master("local")
       .appName("PhoenixSpark")
       .getOrCreate()
+    import spark.implicits._
 
       val conf = HBaseConfiguration.create()
       conf.set("mapreduce.output.fileoutputformat.outputdir","hdfs://localhost:9000/tmp/mapreduceOutput");
@@ -42,11 +43,10 @@ object PhoenixSpark {
       conf,
       zkUrl = Some("127.0.0.1:2181")
     )
-
     //    spark.read.format("org.apache.phoenix.spark").option("table" ,"WEB_STAT").option("zkUrl", "localhost:2181").load().show()
-    //    spark.read.format("org.apache.phoenix.spark").option("table", "WEB_STAT").option("zkUrl", "spark1:2181").load().show()
+//        spark.read.format("org.apache.phoenix.spark").option("table", "WEB_STAT").option("zkUrl", "spark1:2181").load().show()
     spark.stop()
   }
+
 }
 
-case class Aa(a: Int)

@@ -1,4 +1,4 @@
-package spark.dataProcess
+package sample
 
 import org.apache.spark.internal.Logging
 import org.apache.spark.streaming.StreamingContext
