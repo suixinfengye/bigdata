@@ -13,19 +13,19 @@ CREATE TABLE doulist (
   doulist_updatedDate date ,
   created_time date ,
   updated_time varchar(32)
-) SALT_BUCKETS=3;
+)
+# SALT_BUCKETS=3,
+# immutable table reduce the write-time cost
+IMMUTABLE_ROWS=true,
+# determines how often an RPC is done to ensure you’re seeing the latest schema
+UPDATE_CACHE_FREQUENCY=300000,
+#  dense table, SINGLE_CELL_ARRAY_WITH_OFFSETS packs columns belonging to a column family in a single cell
+IMMUTABLE_STORAGE_SCHEME = SINGLE_CELL_ARRAY_WITH_OFFSETS,
+# 列映射功能 该功能对非PK列使用数字HBase列限定符，而不是直接使用列名。当在HBase返回的已排序单元列表中查找单元格时，这会提高性能，
+# 通过减少表使用的磁盘大小进一步提高了性能，并加快了DDL操作（如列重命名和元数据级别的列丢弃）
+COLUMN_ENCODED_BYTES = 1;
 
-CREATE TABLE steaming_record (
-  id varchar(64) PRIMARY KEY ,
-  time varchar(32),
-  recordCount BIGINT,
-  recordType varchar(16),
-  batchRecordId varchar(32),
-  created_time date ,
-  updated_time varchar(32)
-) SALT_BUCKETS=3;
+create index if not exists doulist_iduser_name_idx on doulist (user_name) INCLUDE (user_url) ASYNC UPDATE_CACHE_FREQUENCY=60000
 
-case class SteamingRecord(id: String, time: String, recordUpdateCount: Long, recordType: String,
-                          batchRecordId: String)
 
 

@@ -32,6 +32,7 @@ object CommonTest {
 
   }
 
+
   def testConfig(): Unit = {
     logger.info(CommonUtil.getKafkaServers)
     CommomConfig.isTest = false

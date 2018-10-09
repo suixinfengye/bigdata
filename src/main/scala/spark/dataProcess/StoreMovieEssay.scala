@@ -94,6 +94,7 @@ object StoreMovieEssay extends Logging {
   def processData(spark: SparkSession, stream: InputDStream[ConsumerRecord[String, String]], acc: LongAccumulator): Unit = {
     val batchRecordDS = stream.map(mapFunc = record => regx(record.value)).filter(list => list.nonEmpty).cache()
     saveIntoHbase(batchRecordDS, spark, acc)
+    streamingOpr(batchRecordDS,spark)
   }
 
   /**
@@ -119,15 +120,11 @@ object StoreMovieEssay extends Logging {
   }
 
   /**
-    * TODO
-    * 1.统计每小时入库总数,movie 评论入库数,放入phoenix表中
-    * 表设计: steamingRecord(id,time,recordUpdateCount,recordType,batchRecordId)
+    * 统计每个窗口期间入库总数,movie 评论入库数,放入phoenix表中
+    *
     * recordType: MED(movie eassy Duration),一个长期间内的入库数
     * MEDM(movie eassy Duration for a movie),一个长期间内某个电影的影评入库数
     * batchRecordId : 某个recordType具体类型的标识符,如movieId
-    *
-    * 2. 如何获取关闭StreamingContext信息,处理入库信息后再关闭
-    * 3. 状态的获取与更新,防止内存溢出,要不要clean
     */
   def streamingOpr(batchRecordDS: DStream[List[Review]], spark: SparkSession): Unit = {
     val movieWindowRecords: DStream[(String, List[Review])] = batchRecordDS.window(Seconds(batchInterval * 10), Seconds
@@ -150,6 +147,7 @@ object StoreMovieEssay extends Logging {
         }
     }.cache()
 
+    val conf = CommonUtil.getHbaseConfig
     //入库
     recordAgg.foreachRDD {
       t: RDD[SteamingRecord] =>
@@ -157,6 +155,7 @@ object StoreMovieEssay extends Logging {
           "OUTPUT_TEST_TABLE",
           Seq("id", "time", "recordUpdateCount", "recordType",
             "batchRecordId"),
+          conf,
           zkUrl = Some(CommonUtil.getZkurl))
     }
 

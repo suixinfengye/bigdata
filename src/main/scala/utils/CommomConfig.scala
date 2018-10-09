@@ -18,11 +18,13 @@ object CommomConfig {
 
   val HBASE_ZOOKEEPER_QUORUM_TEST = "localhost"
 
+  val HBASE_OUTPUTDIR_TEST = "hdfs://localhost:9000/tmp/mapreduceOutput"
+
   val ZK_URL = "spark1:2181,spark2:2181,spark3:2181"
 
   val ZK_URL_TEST = "192.168.0.100:2181"
 
-  val MYSQL_URL_TEST = "jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=utf-8&useSSL=false"
+  val MYSQL_URL_TEST = "jdbc:mysql://192.168.0.100:3306/test?useUnicode=true&characterEncoding=utf-8&useSSL=false"
 
   val MYSQL_USER = "root"
 

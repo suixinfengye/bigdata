@@ -14,7 +14,6 @@ object MysqlUtil {
 
   def getCon: Connection = {
     try {
-//      Class.forName("com.mysql.jdbc.Driver")
       Class.forName("com.mysql.cj.jdbc.Driver")
       val url = CommonUtil.getMysqlurl
       val user = CommomConfig.MYSQL_USER

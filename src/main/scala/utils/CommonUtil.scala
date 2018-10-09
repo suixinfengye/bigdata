@@ -1,5 +1,6 @@
 package utils
 
+import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.hbase.HBaseConfiguration
 import org.apache.hadoop.hbase.mapred.TableOutputFormat
 import org.apache.hadoop.mapred.JobConf
@@ -22,19 +23,28 @@ object CommonUtil {
     * @return
     */
   def getWriteHbaseConfig(spark: SparkSession, tableName: String): JobConf = {
+    val conf = getHbaseConfig
+    val jobConf = new JobConf(conf, this.getClass)
+    jobConf.setOutputFormat(classOf[TableOutputFormat])
+    jobConf.set(TableOutputFormat.OUTPUT_TABLE, tableName)
+    jobConf
+  }
+
+  def getHbaseConfig: Configuration = {
     var zookeeperQuorum: String = CommomConfig.HBASE_ZOOKEEPER_QUORUM
+    // TODO
+    var outputdir = CommomConfig.HBASE_OUTPUTDIR_TEST
     if (CommomConfig.isTest) {
       zookeeperQuorum = CommomConfig.HBASE_ZOOKEEPER_QUORUM_TEST
+      outputdir = CommomConfig.HBASE_OUTPUTDIR_TEST
     }
     logger.info("zookeeperQuorum is : " + zookeeperQuorum)
 
     val conf = HBaseConfiguration.create()
     conf.set("hbase.zookeeper.property.clientPort", "2181"); //设置zookeeper client端口
     conf.set("hbase.zookeeper.quorum", zookeeperQuorum)
-    val jobConf = new JobConf(conf, this.getClass)
-    jobConf.setOutputFormat(classOf[TableOutputFormat])
-    jobConf.set(TableOutputFormat.OUTPUT_TABLE, tableName)
-    jobConf
+    conf.set("mapreduce.output.fileoutputformat.outputdir", outputdir);
+    conf
   }
 
   def getKafkaServers: String = {
@@ -65,6 +75,7 @@ object CommonUtil {
   }
 
   def getMysqlurl: String = {
+    // TODO
     var mysqlUrl = CommomConfig.MYSQL_URL_TEST
     if (CommomConfig.isTest) {
       mysqlUrl = CommomConfig.MYSQL_URL_TEST

@@ -49,4 +49,20 @@ object PhoenixSpark {
   }
 
 }
+//http://phoenix.apache.org/tuning_guide.html
+
+//try (Connection conn = DriverManager.getConnection(url)) {
+//  conn.setAutoCommit(false);
+//  int batchSize = 0;
+//  int commitSize = 1000; // number of rows you want to commit per batch.
+//  try (Statement stmt = conn.prepareStatement(upsert)) {
+//  stmt.set ... while (there are records to upsert) {
+//  stmt.executeUpdate();
+//  batchSize++;
+//  if (batchSize % commitSize == 0) {
+//  conn.commit();
+//}
+//}
+//  conn.commit(); // commit the last batch of records
+//}
 

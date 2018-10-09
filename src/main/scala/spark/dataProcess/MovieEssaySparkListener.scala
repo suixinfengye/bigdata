@@ -13,7 +13,6 @@ import java.sql.{PreparedStatement, SQLException, Timestamp}
 import java.util.Date
 
 import org.slf4j.LoggerFactory
-import sample.MysqlTest.logger
 
 
 /**
@@ -42,7 +41,7 @@ class MovieEssaySparkListener(spark: SparkSession, acc: LongAccumulator) extends
     ()), null)
 
     val con = MysqlUtil.getCon
-
+    //TODO 存多一个起始时间吧
     try {
       val pstmt: PreparedStatement = con.prepareStatement("INSERT INTO steaming_record(time, recordCount," +
         " recordType, batchRecordId,created_time) VALUES(?,?,?,?,?)")
@@ -50,6 +49,7 @@ class MovieEssaySparkListener(spark: SparkSession, acc: LongAccumulator) extends
       pstmt.setInt(2, 10)
       pstmt.setString(3, record.recordType)
       pstmt.setString(4, record.batchRecordId)
+      pstmt.setTimestamp(5, record.createdTime)
       pstmt.executeUpdate
     } catch {
       case e: SQLException =>
