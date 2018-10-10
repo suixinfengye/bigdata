@@ -1,5 +1,7 @@
 package spark.dataProcess
 
+import java.sql.{Connection, PreparedStatement}
+
 import com.alibaba.fastjson.JSON
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.common.serialization.StringDeserializer
@@ -14,6 +16,8 @@ import org.apache.spark.streaming.kafka010.LocationStrategies.PreferBrokers
 import sample.Tdl
 import spark.dataProcess.StoreMovieEssay.regx
 import utils.{CommomConfig, CommonUtil}
+
+import scala.collection.mutable.ArrayBuffer
 
 /**
   * feng
@@ -70,23 +74,56 @@ object ProcessMysqlData extends Logging {
     * @param stream
     */
   def processData(spark: SparkSession, stream: InputDStream[ConsumerRecord[String, String]]): Unit = {
+    val batchTableRecordDS = stream.filter(r => r.value != null).map(record => convertTableJsonStr(record.value))
+      .reduceByKey(_ ++ _)
+      .foreachRDD {
+        rdd: RDD[(String, ArrayBuffer[String])] =>
+          if (!rdd.isEmpty()) {
+            rdd.foreachPartition {
+              val con: Connection = CommonUtil.getPhoenixConnection
+              partition =>
+                partition.foreach {
+                  info =>
+                    info._1 match {
 
-    val batchTableRecordDS = stream.map(record => convertTableJsonStr(record.value)).foreachRDD{
-      rdd:RDD[(String,String)] =>
-        import spark.implicits._
-        // TODO 每个dataframe存入多张表,需要先对数据分类,构建不同的RDD/dataframe
-        rdd.toDF()
-    }
+                      case "tbl" => {
+                        val list: ArrayBuffer[Tdl] = info._2.map(t => JSON.parseObject(t, classOf[Tdl]))
+                        logInfo("---------tbl-----not empty" + s)
+                      }
+
+                      case "steaming_record" => {
+                        var pstmt: PreparedStatement = con.prepareStatement("upsert into STEAMING_RECORD(ID,RECORDCOUNT) values (?,?)")
+                        for (a <- 15552 until (15556)) {
+                          pstmt.setString(1, a + "")
+                          pstmt.setInt(2, a)
+                          pstmt.addBatch()
+                        }
+                        pstmt.executeBatch()
+                        con.commit()
+                        con.close()
+                      }
+
+                      case _ => logInfo("---------????-----not empty" )
+                    }
+                }
+            }
+          } else {
+            logInfo("--------ProcessMysqlData empty--------")
+          }
+
+          rdd.count()
+
+      }
 
   }
 
-  def convertTableJsonStr(jsonstr: String): (String, String) = {
+  def convertTableJsonStr(jsonstr: String): (String, ArrayBuffer[String]) = {
     val jsonObject = JSON.parseObject(jsonstr);
     val data = jsonObject.getString("payload");
     val schema = JSON.parseObject(jsonObject.getString("schema"));
     val topicName = schema.getString("name").split("\\.")
     val tableName = topicName(topicName.size - 2)
-    (tableName, data)
+    (tableName, ArrayBuffer(data))
   }
 
   def getMysqlTopic: Array[String] = {

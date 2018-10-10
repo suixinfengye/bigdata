@@ -1,11 +1,14 @@
 package utils
 
+import java.sql.{Connection, DriverManager}
+
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.hbase.HBaseConfiguration
 import org.apache.hadoop.hbase.mapred.TableOutputFormat
 import org.apache.hadoop.mapred.JobConf
 import org.apache.spark.sql.SparkSession
 import org.slf4j.LoggerFactory
+import sample.PhoenixTest.logger
 
 /**
   * feng
@@ -84,6 +87,29 @@ object CommonUtil {
     mysqlUrl
   }
 
+  def getPhoenixConnection: Connection = {
+    var cc: Connection = null
+    val driver = CommomConfig.Phoenix_DRIVER
+    val url = getPhoenixurl
+    try {
+      Class.forName(driver)
+      cc = DriverManager.getConnection(url)
+    } catch {
+      case e: Exception =>
+        logger.error(e.getMessage)
+    }
+    cc
+  }
+
+  def getPhoenixurl: String = {
+    // TODO
+    var phoenixUrl = CommomConfig.Phoenix_URL_LOCAL
+    if (CommomConfig.isTest) {
+      phoenixUrl = CommomConfig.Phoenix_URL_LOCAL
+    }
+    logger.info("Phoenix_URL_LOCAL is : " + phoenixUrl)
+    phoenixUrl
+  }
 
   /**
     * 设置当前为测试环境

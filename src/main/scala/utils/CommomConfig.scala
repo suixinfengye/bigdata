@@ -32,4 +32,10 @@ object CommomConfig {
 
   //当前是否为测试环境
   var isTest = false
+
+  val Phoenix_URL_LOCAL = "jdbc:phoenix:localhost:2181"
+
+  val Phoenix_DRIVER = "org.apache.phoenix.jdbc.PhoenixDriver"
+
+
 }
