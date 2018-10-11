@@ -24,7 +24,7 @@ object CommomConfig {
 
   val ZK_URL_TEST = "192.168.0.100:2181"
 
-  val MYSQL_URL_TEST = "jdbc:mysql://192.168.0.100:3306/test?useUnicode=true&characterEncoding=utf-8&useSSL=false"
+  val MYSQL_URL_TEST = "jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=utf-8&useSSL=false"
 
   val MYSQL_USER = "root"
 

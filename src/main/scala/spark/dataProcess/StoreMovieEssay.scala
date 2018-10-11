@@ -19,6 +19,8 @@ import spark.dto.{Review, SteamingRecord}
 import utils.{CommomConfig, CommonUtil, MyConstant, MyDateUtil}
 import java.util.Date
 
+import org.apache.commons.collections.CollectionUtils
+import org.apache.commons.lang.StringUtils
 import org.apache.phoenix.spark._
 import org.apache.spark.rdd.RDD
 import org.apache.spark.util.LongAccumulator
@@ -36,7 +38,7 @@ import scala.collection.mutable.ListBuffer
   */
 object StoreMovieEssay extends Logging {
 
-  val batchInterval: Int = 3
+  val batchInterval: Int = 2
 
   def main(args: Array[String]): Unit = {
     val spark = SparkSession
@@ -74,10 +76,11 @@ object StoreMovieEssay extends Logging {
     )
 
     val acc: LongAccumulator = spark.sparkContext.longAccumulator("movieCount")
+    val startTime = new Timestamp(new Date().getTime())
 
     processData(spark, stream, acc)
 
-    spark.sparkContext.addSparkListener(new MovieEssaySparkListener(spark, acc))
+    spark.sparkContext.addSparkListener(new MovieEssaySparkListener(spark, acc, startTime))
 
     ssc.start()
     ssc.awaitTermination()
@@ -92,9 +95,15 @@ object StoreMovieEssay extends Logging {
     * @param stream
     */
   def processData(spark: SparkSession, stream: InputDStream[ConsumerRecord[String, String]], acc: LongAccumulator): Unit = {
-    val batchRecordDS = stream.map(mapFunc = record => regx(record.value)).filter(list => list.nonEmpty).cache()
+    val batchRecordDS = stream.map(mapFunc = record => {
+      if (StringUtils.isNotEmpty(record.value())){
+        regx(record.value)
+      }else{
+        List.empty
+      }
+    }).filter(list => list.nonEmpty).cache()
     saveIntoHbase(batchRecordDS, spark, acc)
-    streamingOpr(batchRecordDS,spark)
+    streamingOpr(batchRecordDS, spark)
   }
 
   /**
@@ -127,8 +136,9 @@ object StoreMovieEssay extends Logging {
     * batchRecordId : 某个recordType具体类型的标识符,如movieId
     */
   def streamingOpr(batchRecordDS: DStream[List[Review]], spark: SparkSession): Unit = {
-    val movieWindowRecords: DStream[(String, List[Review])] = batchRecordDS.window(Seconds(batchInterval * 10), Seconds
-    (batchInterval * 5)).map {
+    import spark.implicits._
+    val movieWindowRecords: DStream[(String, List[Review])] = batchRecordDS.window(Seconds(batchInterval * 2), Seconds
+    (batchInterval * 2)).map {
       reviews: List[Review] =>
         val key = reviews(0).movieid
         (key, reviews)
@@ -138,27 +148,26 @@ object StoreMovieEssay extends Logging {
       iter: Iterator[(String, List[Review])] =>
         val date = new Date
         val dateStr = MyDateUtil.dateFormat(date)
+        val curretTime = new Timestamp(date.getTime)
         val recordType = MyConstant.RECORD_TYPE_MEDM
         //t:(String, List[Review])
         //主键设置为 movieid+timestamp, 每一个批次处理时,都是按movieid分组的,一个批次同一个movieid只会有一个
         iter.map { t =>
-          SteamingRecord(t._1 + dateStr, dateStr, t._2.size, recordType, t._1, new Timestamp(date.getTime
-          ()), null)
+          val s = SteamingRecord(t._1 + dateStr, null, curretTime, t._2.size, recordType, t._1, curretTime, null)
+          logInfo("-----+++:"+s.toString)
+          s
         }
-    }.cache()
+    }
 
-    val conf = CommonUtil.getHbaseConfig
+    logInfo("start to save into Phoenix")
     //入库
     recordAgg.foreachRDD {
       t: RDD[SteamingRecord] =>
-        t.saveToPhoenix(
-          "OUTPUT_TEST_TABLE",
-          Seq("id", "time", "recordUpdateCount", "recordType",
-            "batchRecordId"),
-          conf,
-          zkUrl = Some(CommonUtil.getZkurl))
+        if (!t.isEmpty()) {
+          val conf = CommonUtil.getHbaseConfig
+          t.toDF().saveToPhoenix("STEAMING_RECORD", conf, Option(CommonUtil.getZkurl))
+        }
     }
-
   }
 
   /**
@@ -174,6 +183,9 @@ object StoreMovieEssay extends Logging {
     val reviewPattern = "https://movie.douban.com/review/"
     val contentPattern = ":::"
     val reviewList: ListBuffer[Review] = ListBuffer[Review]()
+    if (list == None) {
+      return  reviewList.toList
+    }
     list.foreach { item =>
       if (item.length > 90) { //过滤空对象
         val fileNameIndex: Int = item.indexOf(fileNamePattern)

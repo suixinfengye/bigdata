@@ -28,4 +28,13 @@ COLUMN_ENCODED_BYTES = 1;
 create index if not exists doulist_iduser_name_idx on doulist (user_name) INCLUDE (user_url) ASYNC UPDATE_CACHE_FREQUENCY=60000
 
 
-
+CREATE TABLE steaming_record (
+  id varchar(32) PRIMARY KEY,
+  af.startTime date ,
+  af.endTime date ,
+  af.recordCount INTEGER ,
+  af.recordType varchar(16) ,
+  af.batchRecordId varchar(32),
+  bf.createdTime date ,
+  bf.updatedTime date
+)

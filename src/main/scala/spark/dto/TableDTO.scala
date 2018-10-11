@@ -1,6 +1,7 @@
 package spark.dto
 
-import java.util.Date
+import java.sql.Date
+
 
 case class Doulist(id: Long, movieid: String, doulistUrl: String, doulistName: String, doulistIntr: String,
                    userName: String, userUrl: String, collectNum: Integer, recommendNum: Integer, movieNum: Integer,

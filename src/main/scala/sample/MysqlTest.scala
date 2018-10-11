@@ -5,7 +5,7 @@ import java.util.Date
 
 import org.slf4j.LoggerFactory
 import spark.dto.SteamingRecord
-import utils.{MyConstant, MyDateUtil, MysqlUtil}
+import utils.{CommonUtil, MyConstant, MyDateUtil, MysqlUtil}
 
 /**
   * feng
@@ -16,26 +16,34 @@ object MysqlTest {
   val logger = LoggerFactory.getLogger(this.getClass)
 
   def main(args: Array[String]): Unit = {
+    //设置当前为测试环境
+    CommonUtil.setTestEvn
     mysql
   }
 
   def mysql = {
     val date = new Date
     val dateStr = MyDateUtil.dateFormat(date)
+    val curretTime = new Timestamp(date.getTime)
     val recordType = MyConstant.RECORD_TYPE_MED
-    val record = SteamingRecord("MovieEssay" + dateStr, dateStr, 15, recordType, "BATCHid",new Timestamp(date.getTime
-    ()),null)
+
+    val record = SteamingRecord(dateStr, curretTime, curretTime, 15, recordType, "Essay_MED",
+      curretTime, null)
+    val prepareStatementStr = "INSERT INTO steaming_record(id,startTime, endTime," +
+      "recordCount,recordType, batchRecordId,created_time) VALUES(?,?,?,?,?,?,?)"
+    logger.info("prepareStatement : "+prepareStatementStr)
+    logger.info(record.toString)
+
     val con = MysqlUtil.getCon
-
     try {
-      val pstmt: PreparedStatement = con.prepareStatement("INSERT INTO steaming_record(time, recordCount," +
-        " recordType, batchRecordId,created_time) VALUES(?,?,?,?,?)")
-
-      pstmt.setString(1, record.time)
-      pstmt.setInt(2, 10)
-      pstmt.setString(3, record.recordType)
-      pstmt.setString(4, record.batchRecordId)
-      pstmt.setTimestamp(5,record.createdTime)
+      val pstmt: PreparedStatement = con.prepareStatement(prepareStatementStr)
+      pstmt.setString(1,record.id)
+      pstmt.setTimestamp(2, record.startTime)
+      pstmt.setTimestamp(3, record.endTime)
+      pstmt.setInt(4, record.recordCount.toInt)
+      pstmt.setString(5, record.recordType)
+      pstmt.setString(6, record.batchRecordId)
+      pstmt.setTimestamp(7, record.createdTime)
       pstmt.executeUpdate
     } catch {
       case e: SQLException =>

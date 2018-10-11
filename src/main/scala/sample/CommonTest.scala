@@ -1,6 +1,8 @@
 package sample
 
 
+import java.sql.Timestamp
+
 import org.apache.spark.internal.Logging
 import org.slf4j.LoggerFactory
 import spark.dto.Review
@@ -27,6 +29,12 @@ object CommonTest {
   }
 
   def testDateFormat= {
+    val date = new Date
+    val dateStr = MyDateUtil.dateFormat(date)
+    val curretTime = new Timestamp(date.getTime)
+    logger.info("curretTime:"+curretTime)
+    logger.info("dateStr:"+dateStr)
+
     val fdf: FastDateFormat = FastDateFormat.getInstance("MM-dd")
     logger.info(fdf.format(new Date()))
 

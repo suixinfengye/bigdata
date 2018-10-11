@@ -1,9 +1,14 @@
-CREATE TABLE steaming_record (
-  `id` int(11) PRIMARY KEY AUTO_INCREMENT ,
-  `time` varchar(32),
-  `recordCount` int(11),
-  `recordType` varchar(16),
-  `batchRecordId` varchar(32),
-  `created_time` datetime,
-  `updated_time` datetime
-)
+CREATE TABLE `steaming_record` (
+  `id` varchar(32) COLLATE utf8_bin NOT NULL,
+  `startTime` datetime DEFAULT NULL,
+  `endTime` datetime DEFAULT NULL,
+  `recordCount` int(11) DEFAULT NULL,
+  `recordType` varchar(16) COLLATE utf8_bin DEFAULT NULL,
+  `batchRecordId` varchar(32) COLLATE utf8_bin DEFAULT NULL,
+  `created_time` datetime DEFAULT NULL,
+  `updated_time` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+
+
+

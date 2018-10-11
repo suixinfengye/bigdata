@@ -74,24 +74,29 @@ object ProcessMysqlData extends Logging {
     * @param stream
     */
   def processData(spark: SparkSession, stream: InputDStream[ConsumerRecord[String, String]]): Unit = {
+    //按表名分组(tableame,Array(tableinfo))
     val batchTableRecordDS = stream.filter(r => r.value != null).map(record => convertTableJsonStr(record.value))
       .reduceByKey(_ ++ _)
-      .foreachRDD {
+
+    batchTableRecordDS.foreachRDD {
         rdd: RDD[(String, ArrayBuffer[String])] =>
           if (!rdd.isEmpty()) {
             rdd.foreachPartition {
-              val con: Connection = CommonUtil.getPhoenixConnection
-              partition =>
-                partition.foreach {
+              part =>
+                //get Connection in each partition
+                val con: Connection = CommonUtil.getPhoenixConnection
+                part.foreach {
                   info =>
+                    // 对每个记录
                     info._1 match {
 
                       case "tbl" => {
                         val list: ArrayBuffer[Tdl] = info._2.map(t => JSON.parseObject(t, classOf[Tdl]))
-                        logInfo("---------tbl-----not empty" + s)
+                        logInfo("---------tbl-----not empty")
                       }
 
                       case "steaming_record" => {
+                        val list: ArrayBuffer[Tdl] = info._2.map(t => JSON.parseObject(t, classOf[Tdl]))
                         var pstmt: PreparedStatement = con.prepareStatement("upsert into STEAMING_RECORD(ID,RECORDCOUNT) values (?,?)")
                         for (a <- 15552 until (15556)) {
                           pstmt.setString(1, a + "")

@@ -1,8 +1,6 @@
 package spark.dataProcess
 
 
-import org.apache.spark.internal.Logging
-import org.apache.spark.rdd.RDD
 import org.apache.spark.scheduler.{SparkListener, SparkListenerApplicationEnd, SparkListenerJobEnd}
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.util.LongAccumulator
@@ -20,7 +18,7 @@ import org.slf4j.LoggerFactory
   * feng
   * 18-10-4
   */
-class MovieEssaySparkListener(spark: SparkSession, acc: LongAccumulator) extends SparkListener with Logging {
+class MovieEssaySparkListener(spark: SparkSession, acc: LongAccumulator, startTime: Timestamp) extends SparkListener {
 
   val logger = LoggerFactory.getLogger(this.getClass)
 
@@ -31,25 +29,30 @@ class MovieEssaySparkListener(spark: SparkSession, acc: LongAccumulator) extends
     * @param applicationEnd
     */
   override def onApplicationEnd(applicationEnd: SparkListenerApplicationEnd): Unit = {
+    logger.info("---------------onApplicationEnd-----------------")
+
     val date = new Date
     val dateStr = MyDateUtil.dateFormat(date)
+    val curretTime = new Timestamp(date.getTime)
     val recordType = MyConstant.RECORD_TYPE_MED
 
-    logInfo("---------------onApplicationEnd-----------------")
-
-    val record = SteamingRecord(null, dateStr, acc.value, recordType, "Essay_MED", new Timestamp(date.getTime
-    ()), null)
+    val record = SteamingRecord(dateStr, startTime, curretTime, acc.value, recordType, "EssayMED",
+      curretTime, null)
+    val prepareStatementStr = "INSERT INTO steaming_record(id,startTime, endTime," +
+      "recordCount,recordType, batchRecordId,created_time) VALUES(?,?,?,?,?,?,?)"
+    logger.info("prepareStatement : "+prepareStatementStr)
+    logger.info(record.toString)
 
     val con = MysqlUtil.getCon
-    //TODO 存多一个起始时间吧
     try {
-      val pstmt: PreparedStatement = con.prepareStatement("INSERT INTO steaming_record(time, recordCount," +
-        " recordType, batchRecordId,created_time) VALUES(?,?,?,?,?)")
-      pstmt.setString(1, record.time)
-      pstmt.setInt(2, 10)
-      pstmt.setString(3, record.recordType)
-      pstmt.setString(4, record.batchRecordId)
-      pstmt.setTimestamp(5, record.createdTime)
+      val pstmt: PreparedStatement = con.prepareStatement(prepareStatementStr)
+      pstmt.setString(1,record.id)
+      pstmt.setTimestamp(2, record.startTime)
+      pstmt.setTimestamp(3, record.endTime)
+      pstmt.setInt(4, record.recordCount.toInt)
+      pstmt.setString(5, record.recordType)
+      pstmt.setString(6, record.batchRecordId)
+      pstmt.setTimestamp(7, record.createdTime)
       pstmt.executeUpdate
     } catch {
       case e: SQLException =>
@@ -57,6 +60,6 @@ class MovieEssaySparkListener(spark: SparkSession, acc: LongAccumulator) extends
     } finally {
       MysqlUtil.colseConnection(con)
     }
-  }
 
+  }
 }
