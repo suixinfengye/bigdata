@@ -1,11 +1,12 @@
 package spark.dto
 
-import java.sql.Timestamp
+import java.sql.{Date, Timestamp}
 
 
 case class Doulist(id: Long, movieid: String, doulistUrl: String, doulistName: String, doulistIntr: String,
                    userName: String, userUrl: String, collectNum: Integer, recommendNum: Integer, movieNum: Integer,
-                   doulistCratedDate: Timestamp, doulistUpdatedDate: Timestamp, createdTime: Timestamp, updatedTime: Timestamp)
+                   doulistCratedDate: Date, doulistUpdatedDate: Date, createdTime: Timestamp,
+                   updatedTime: Timestamp)
 
 
 case class DoulistMovieDetail(id: Long, movieid: String, doulistUrl: String, createdTime: Timestamp, updatedTime: Timestamp)

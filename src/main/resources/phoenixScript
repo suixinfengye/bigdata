@@ -1,31 +1,166 @@
-CREATE TABLE doulist (
-  id INTEGER PRIMARY KEY ,
-  movieid varchar(16) ,
-  doulist_url varchar(128),
-  doulist_name varchar(128) ,
-  doulist_intr varchar(1024) ,
-  user_name varchar(32) ,
-  user_url varchar(128),
-  collect_num INTEGER ,
-  recommend_num INTEGER,
-  movie_num INTEGER,
-  doulist_cratedDate date ,
-  doulist_updatedDate date ,
-  created_time date ,
-  updated_time varchar(32)
-)
 # SALT_BUCKETS=3,
 # immutable table reduce the write-time cost
-IMMUTABLE_ROWS=true,
+# IMMUTABLE_ROWS=true,
 # determines how often an RPC is done to ensure you’re seeing the latest schema
-UPDATE_CACHE_FREQUENCY=300000,
-#  dense table, SINGLE_CELL_ARRAY_WITH_OFFSETS packs columns belonging to a column family in a single cell
-IMMUTABLE_STORAGE_SCHEME = SINGLE_CELL_ARRAY_WITH_OFFSETS,
+# UPDATE_CACHE_FREQUENCY=300000,
+# dense table, SINGLE_CELL_ARRAY_WITH_OFFSETS packs columns belonging to a column family in a single cell
+# IMMUTABLE_STORAGE_SCHEME = SINGLE_CELL_ARRAY_WITH_OFFSETS,
 # 列映射功能 该功能对非PK列使用数字HBase列限定符，而不是直接使用列名。当在HBase返回的已排序单元列表中查找单元格时，这会提高性能，
 # 通过减少表使用的磁盘大小进一步提高了性能，并加快了DDL操作（如列重命名和元数据级别的列丢弃）
+# COLUMN_ENCODED_BYTES = 1;
+
+CREATE TABLE doulist (
+  id INTEGER PRIMARY KEY ,
+  af.movieid varchar(16) ,
+  af.doulist_url varchar(128),
+  af.doulist_name varchar(128) ,
+  af.doulist_intr varchar(1024) ,
+  af.user_name varchar(32) ,
+  af.user_url varchar(128),
+  af.collect_num INTEGER ,
+  af.recommend_num INTEGER,
+  af.movie_num INTEGER,
+  af.doulist_cratedDate date ,
+  af.doulist_updatedDate date ,
+  bf.created_time date ,
+  bf.updated_time date
+)
+UPDATE_CACHE_FREQUENCY=300000,
+IMMUTABLE_STORAGE_SCHEME = SINGLE_CELL_ARRAY_WITH_OFFSETS,
 COLUMN_ENCODED_BYTES = 1;
 
-create index if not exists doulist_iduser_name_idx on doulist (user_name) INCLUDE (user_url) ASYNC UPDATE_CACHE_FREQUENCY=60000
+# create index if not exists doulist_iduser_name_idx on doulist (user_name) INCLUDE (user_url) ASYNC
+UPDATE_CACHE_FREQUENCY=60000
+
+
+CREATE TABLE doulist_movie_detail (
+  id INTEGER PRIMARY KEY ,
+  af.movieid varchar(16),
+  af.doulist_url varchar(128),
+  bf.ucreated_time date,
+  bf.uupdated_time date
+) 
+UPDATE_CACHE_FREQUENCY=300000,
+IMMUTABLE_STORAGE_SCHEME = SINGLE_CELL_ARRAY_WITH_OFFSETS,
+COLUMN_ENCODED_BYTES = 1;
+create index if not exists doulist_movie_detail_url_idx on doulist_movie_detail (doulist_url) INCLUDE (movieid)
+ASYNCUPDATE_CACHE_FREQUENCY=60000;
+
+CREATE TABLE film_critics (
+  id INTEGER PRIMARY KEY ,
+  af.movieid varchar(16),
+  af.film_critics_url varchar(128) ,
+  af.title varchar(64) ,
+  af.user_name varchar(128),
+  af.user_url varchar(128),
+  af.comment_rate decimal(2,1),
+  af.comment_time date ,
+  af.useless_num INTEGER,
+  af.useful_num INTEGER ,
+  af.like_num INTEGER ,
+  af.recommend_num INTEGER ,
+  af.review varchar(128) ,
+  bf.created_time date,
+  bf.updated_time date
+) 
+UPDATE_CACHE_FREQUENCY=300000,
+IMMUTABLE_STORAGE_SCHEME = SINGLE_CELL_ARRAY_WITH_OFFSETS,
+COLUMN_ENCODED_BYTES = 1;
+
+
+CREATE TABLE movie_base_info (
+  id INTEGER  PRIMARY KEY,
+  af.movieid varchar(16) ,
+  af.movie_name varchar(64) ,
+  af.view_date date,
+  af.personal_rate INTEGER,
+  af.personal_tags varchar(64),
+  af.intro varchar(1024) ,
+  af.isViewed char(1) ,
+  bf.created_time date,
+  bf.updated_time date
+)
+UPDATE_CACHE_FREQUENCY=300000,
+IMMUTABLE_STORAGE_SCHEME = SINGLE_CELL_ARRAY_WITH_OFFSETS,
+COLUMN_ENCODED_BYTES = 1;
+
+
+CREATE TABLE movie_detail (
+  id INTEGER  PRIMARY KEY,
+  af.movieid varchar(16) ,
+  af.movie_url varchar(128) ,
+  af.movie_name varchar(64) ,
+  af.director varchar(128) ,
+  af.writers varchar(128) ,
+  af.stars varchar(512) ,
+  af.genres varchar(32)  ,
+  af.country varchar(64)  ,
+  af.official_site varchar(64)  ,
+  af.language varchar(32) ,
+  af.release_date varchar(128)  ,
+  af.also_known_as varchar(128) ,
+  af.runtime varchar(32)  ,
+  af.IMDb_url varchar(64)  ,
+  af.douban_rate decimal(2,1)  ,
+  af.rate_num INTEGER  ,
+  af.star_5 varchar(8)  ,
+  af.star_4 varchar(8)  ,
+  af.star_3 varchar(8)  ,
+  af.star_2 varchar(8)  ,
+  af.star_1 varchar(8) ,
+  af.comparison_1 varchar(64)  ,
+  af.comparison_2 varchar(64)  ,
+  af.tags varchar(128) ,
+  af.storyline varchar(1024)  ,
+  af.also_like_1_name varchar(64)  ,
+  af.also_like_1_url varchar(128) ,
+  af.also_like_2_name varchar(64)  ,
+  af.also_like_2_url varchar(128)  ,
+  af.also_like_3_name varchar(64)  ,
+  af.also_like_3_url varchar(128)  ,
+  af.also_like_4_name varchar(64)  ,
+  af.also_like_4_url varchar(128)  ,
+  af.also_like_5_name varchar(64)  ,
+  af.also_like_5_url varchar(128)  ,
+  af.also_like_6_name varchar(64)  ,
+  af.also_like_6_url varchar(128)  ,
+  af.also_like_7_name varchar(64)  ,
+  af.also_like_7_url varchar(128)  ,
+  af.also_like_8_name varchar(64)  ,
+  af.also_like_8_url varchar(128)  ,
+  af.also_like_9_name varchar(64)  ,
+  af.also_like_9_url varchar(128)  ,
+  af.also_like_10_name varchar(64)  ,
+  af.also_like_10_url varchar(128)  ,
+  af.essay_collect_url varchar(128)  ,
+  af.film_critics_url varchar(128)  ,
+  af.doulists_url varchar(128),
+  af.viewed_num INTEGER ,
+  af.want_to_view_num INTEGER ,
+  af.image_url varchar(128) ,
+  bf.created_time date,
+  bf.updated_time date
+) 
+UPDATE_CACHE_FREQUENCY=300000,
+IMMUTABLE_STORAGE_SCHEME = SINGLE_CELL_ARRAY_WITH_OFFSETS,
+COLUMN_ENCODED_BYTES = 1;
+
+
+
+CREATE TABLE movie_essay (
+  id INTEGER  PRIMARY KEY,
+  af.movieid varchar(16) ,
+  af.user_name varchar(32) ,
+  af.user_url varchar(128)  ,
+  af.comment varchar(512)  ,
+  af.comment_rate varchar(8) ,
+  af.comment_time date ,
+  bf.created_time date ,
+  bf.updated_time date
+) 
+UPDATE_CACHE_FREQUENCY=300000,
+IMMUTABLE_STORAGE_SCHEME = SINGLE_CELL_ARRAY_WITH_OFFSETS,
+COLUMN_ENCODED_BYTES = 1;
 
 
 CREATE TABLE steaming_record (
@@ -49,5 +184,6 @@ IMMUTABLE_ROWS=true,
 UPDATE_CACHE_FREQUENCY=300000,
 IMMUTABLE_STORAGE_SCHEME = SINGLE_CELL_ARRAY_WITH_OFFSETS,
 COLUMN_ENCODED_BYTES = 1;
+
 
 

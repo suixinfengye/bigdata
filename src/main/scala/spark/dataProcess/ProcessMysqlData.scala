@@ -102,6 +102,7 @@ object ProcessMysqlData extends Logging {
                     case _ => logInfo("---------not match-----")
                   }
               }
+              MysqlUtil.colseConnection(con)
           }
         } else {
           logInfo("--------ProcessMysqlData empty--------")
@@ -130,6 +131,7 @@ object ProcessMysqlData extends Logging {
   }
 
   def saveSteamingRecord(info: (String, ArrayBuffer[String]), con: Connection): Unit = {
+    logInfo("ArrayBuffer[String]:"+info._2(0).toString)
     val list: ArrayBuffer[SteamingRecord] = info._2.map(t => JSON.parseObject(t, classOf[SteamingRecord]))
     val executeSql = "upsert into STEAMING_RECORD(ID,STARTTIME,ENDTIME,RECORDCOUNT,RECORDTYPE,BATCHRECORDID,CREATEDTIME) " +
       "values(?,CONVERT_TZ(?, 'UTC', 'Asia/Shanghai'),CONVERT_TZ(?, 'UTC', 'Asia/Shanghai'),?,?,?,CONVERT_TZ" +
@@ -158,8 +160,6 @@ object ProcessMysqlData extends Logging {
     } catch {
       case e: SQLException =>
         logError(e.getMessage)
-    } finally {
-      MysqlUtil.colseConnection(con)
     }
   }
 

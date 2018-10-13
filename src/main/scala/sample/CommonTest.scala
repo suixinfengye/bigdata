@@ -2,6 +2,7 @@ package sample
 
 
 import java.sql.Timestamp
+import java.text.SimpleDateFormat
 
 import org.apache.spark.internal.Logging
 import org.slf4j.LoggerFactory
@@ -9,7 +10,7 @@ import spark.dto.Review
 import utils.{CommomConfig, CommonUtil, MyDateUtil}
 
 import scala.collection.mutable._
-import java.util.Date
+import java.util.{Date, Locale}
 
 import org.apache.commons.lang.time.FastDateFormat
 
@@ -25,7 +26,16 @@ object CommonTest {
     //    regx(test).foreach(r => logger.info(r.toString))
     //    reverse("21565")
     //    testConfig
-    testDateFormat
+//    testDateFormat
+    testTimeStamp
+  }
+
+  //1539469197000
+  def testTimeStamp={
+//    logger.info(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format("1539469197000"))
+    logger.info(new Date(1539469197000l).toString)
+    val s = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.CHINA).parse(new Date(1539469197000l).toString)
+    logger.info(s.toString)
   }
 
   def testDateFormat= {
@@ -46,6 +56,7 @@ object CommonTest {
     CommomConfig.isTest = false
     logger.info(CommonUtil.getKafkaServers)
   }
+
 
   def reverse(movieid: String) = {
     logger.info(movieid)
