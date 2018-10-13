@@ -91,3 +91,5 @@ spark3: Exception in thread "main" org.apache.hadoop.HadoopIllegalArgumentExcept
 spark3:         at org.apache.hadoop.hdfs.tools.DFSZKFailoverController.create(DFSZKFailoverController.java:128)
 spark3:         at org.apache.hadoop.hdfs.tools.DFSZKFailoverController.main(DFSZKFailoverController.java:177)
 ```
+
+streaming 将kafka记录保存在redis中吧

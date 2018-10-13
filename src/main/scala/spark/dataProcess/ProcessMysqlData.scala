@@ -1,6 +1,7 @@
 package spark.dataProcess
 
-import java.sql.{Connection, PreparedStatement}
+import java.sql.{Connection, PreparedStatement, SQLException, Timestamp}
+import java.util.Date
 
 import com.alibaba.fastjson.JSON
 import org.apache.kafka.clients.consumer.ConsumerRecord
@@ -15,7 +16,8 @@ import org.apache.spark.streaming.kafka010.KafkaUtils
 import org.apache.spark.streaming.kafka010.LocationStrategies.PreferBrokers
 import sample.Tdl
 import spark.dataProcess.StoreMovieEssay.regx
-import utils.{CommomConfig, CommonUtil}
+import spark.dto.{Doulist, SteamingRecord}
+import utils.{CommomConfig, CommonUtil, MysqlUtil}
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -24,7 +26,7 @@ import scala.collection.mutable.ArrayBuffer
   * 18-10-9
   */
 object ProcessMysqlData extends Logging {
-  val batchInterval: Int = 3
+  val batchInterval: Int = 2
 
   def main(args: Array[String]): Unit = {
     val spark = SparkSession
@@ -79,47 +81,86 @@ object ProcessMysqlData extends Logging {
       .reduceByKey(_ ++ _)
 
     batchTableRecordDS.foreachRDD {
-        rdd: RDD[(String, ArrayBuffer[String])] =>
-          if (!rdd.isEmpty()) {
-            rdd.foreachPartition {
-              part =>
-                //get Connection in each partition
-                val con: Connection = CommonUtil.getPhoenixConnection
-                part.foreach {
-                  info =>
-                    // 对每个记录
-                    info._1 match {
+      rdd: RDD[(String, ArrayBuffer[String])] =>
+        if (!rdd.isEmpty()) {
+          // 按partition遍历
+          rdd.foreachPartition {
+            part =>
+              //get Connection in each partition
+              val con: Connection = CommonUtil.getPhoenixConnection
+              part.foreach {
+                info =>
+                  // 对每个记录
+                  info._1 match {
+                    case "tbl" => saveTbl(info, con)
+                    case "steaming_record" => saveSteamingRecord(info, con)
+                    case "doulist" => {
+                      val list: ArrayBuffer[Doulist] = info._2.map(t => JSON.parseObject(t, classOf[Doulist]))
+                      logInfo("insert Doulist:" + list.size)
 
-                      case "tbl" => {
-                        val list: ArrayBuffer[Tdl] = info._2.map(t => JSON.parseObject(t, classOf[Tdl]))
-                        logInfo("---------tbl-----not empty")
-                      }
-
-                      case "steaming_record" => {
-                        val list: ArrayBuffer[Tdl] = info._2.map(t => JSON.parseObject(t, classOf[Tdl]))
-                        var pstmt: PreparedStatement = con.prepareStatement("upsert into STEAMING_RECORD(ID,RECORDCOUNT) values (?,?)")
-                        for (a <- 15552 until (15556)) {
-                          pstmt.setString(1, a + "")
-                          pstmt.setInt(2, a)
-                          pstmt.addBatch()
-                        }
-                        pstmt.executeBatch()
-                        con.commit()
-                        con.close()
-                      }
-
-                      case _ => logInfo("---------????-----not empty" )
                     }
-                }
-            }
-          } else {
-            logInfo("--------ProcessMysqlData empty--------")
+                    case _ => logInfo("---------not match-----")
+                  }
+              }
           }
+        } else {
+          logInfo("--------ProcessMysqlData empty--------")
+        }
+        //强制runjob
+        rdd.count()
+    }
 
-          rdd.count()
+  }
 
-      }
+  def saveTbl(info: (String, ArrayBuffer[String]), con: Connection): Unit = {
+    val list: ArrayBuffer[Tdl] = info._2.map(t => JSON.parseObject(t, classOf[Tdl]))
+    val sql = "upsert into tbl(id,title,author) VALUES (?,?,?)"
+    logInfo(sql)
+    logInfo(list(0).toString)
+    logInfo("insert Tdl size:" + list.size)
+    val pstmt: PreparedStatement = con.prepareStatement(sql)
+    list.foreach {
+      r =>
+        pstmt.setInt(1, r.id)
+        pstmt.setString(2, r.title)
+        pstmt.setString(3, r.author)
+        pstmt.addBatch()
+    }
+    executeAndCommit(pstmt, con)
+  }
 
+  def saveSteamingRecord(info: (String, ArrayBuffer[String]), con: Connection): Unit = {
+    val list: ArrayBuffer[SteamingRecord] = info._2.map(t => JSON.parseObject(t, classOf[SteamingRecord]))
+    val executeSql = "upsert into STEAMING_RECORD(ID,STARTTIME,ENDTIME,RECORDCOUNT,RECORDTYPE,BATCHRECORDID,CREATEDTIME) " +
+      "values(?,CONVERT_TZ(?, 'UTC', 'Asia/Shanghai'),CONVERT_TZ(?, 'UTC', 'Asia/Shanghai'),?,?,?,CONVERT_TZ" +
+      "(CURRENT_DATE(), 'UTC', 'Asia/Shanghai'))"
+    var pstmt: PreparedStatement = con.prepareStatement(executeSql)
+    logInfo(executeSql)
+    logInfo(list(0).toString)
+    logInfo("insert steaming_record size:" + list.size)
+    list.foreach {
+      r =>
+        pstmt.setString(1, r.id)
+        pstmt.setTimestamp(2, r.startTime)
+        pstmt.setTimestamp(3, r.endTime)
+        pstmt.setLong(4, r.recordCount)
+        pstmt.setString(5, r.recordType)
+        pstmt.setString(6, r.batchRecordId)
+        pstmt.addBatch()
+    }
+    executeAndCommit(pstmt, con)
+  }
+
+  def executeAndCommit(ps: PreparedStatement, con: Connection) = {
+    try {
+      ps.executeBatch()
+      con.commit()
+    } catch {
+      case e: SQLException =>
+        logError(e.getMessage)
+    } finally {
+      MysqlUtil.colseConnection(con)
+    }
   }
 
   def convertTableJsonStr(jsonstr: String): (String, ArrayBuffer[String]) = {

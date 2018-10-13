@@ -75,6 +75,7 @@ object PhoenixSpark {
     val t = spark.createDataset(Seq(re))
     t.show()
     val conf = CommonUtil.getHbaseConfig
+    conf.set("phoenix.query.dateFormatTimeZone", "GMT+08:00");
     t.toDF().saveToPhoenix("STEAMING_RECORD",conf,Option(CommonUtil.getZkurl))
   }
 

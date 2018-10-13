@@ -17,4 +17,5 @@ object FastJsonTest {
     println(JSON.parseObject(data, classOf[Tdl]))
   }
 }
-case class Tdl(id: Integer,title: String,atableNameuthor: String,op:String,tsMs:Long,alsoLike9Url:String)
+//case class Tdl(id: Integer,title: String,atableNameuthor: String,op:String,tsMs:Long,alsoLike9Url:String)
+case class Tdl(id: Integer,title: String,author: String)

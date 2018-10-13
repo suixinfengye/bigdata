@@ -34,6 +34,7 @@ object CommomConfig {
   var isTest = false
 
   val Phoenix_URL_LOCAL = "jdbc:phoenix:localhost:2181"
+//  val Phoenix_URL_LOCAL = "jdbc:phoenix:localhost:2181?timeZone=GMT+8"
 
   val Phoenix_DRIVER = "org.apache.phoenix.jdbc.PhoenixDriver"
 
