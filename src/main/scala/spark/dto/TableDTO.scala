@@ -1,28 +1,29 @@
 package spark.dto
 
 import java.sql.{Date, Timestamp}
+import java.math.BigDecimal
 
-
-case class Doulist(id: Long, movieid: String, doulistUrl: String, doulistName: String, doulistIntr: String,
+case class Doulist(id: Integer, movieid: String, doulistUrl: String, doulistName: String, doulistIntr: String,
                    userName: String, userUrl: String, collectNum: Integer, recommendNum: Integer, movieNum: Integer,
                    doulistCratedDate: Date, doulistUpdatedDate: Date, createdTime: Timestamp,
                    updatedTime: Timestamp)
 
 
-case class DoulistMovieDetail(id: Long, movieid: String, doulistUrl: String, createdTime: Timestamp, updatedTime: Timestamp)
+case class DoulistMovieDetail(id: Integer, movieid: String, doulistUrl: String, createdTime: Timestamp, updatedTime: Timestamp)
 
-case class FilmCritics(id: Long, movieid: String, filmCriticsUrl: String, title: String, userName: String,
-                       userUrl: String, commentRate: Double, commentTime: Timestamp, uselessNum: Integer,
+case class FilmCritics(id: Integer, movieid: String, filmCriticsUrl: String, title: String, userName: String,
+                       userUrl: String, commentRate:BigDecimal, commentTime: Date, uselessNum: Integer,
                        usefulNum: Integer, likeNum: Integer, recommendNum: Integer,
                        review: String, createdTime: Timestamp, updatedTime: Timestamp)
 
-case class MovieBaseInfo(id: Long, movieid: String, movieName: String, viewDate: Timestamp, personalRate: Integer,
+case class MovieBaseInfo(id: Integer, movieid: String, movieName: String, viewDate: Date, personalRate: Integer,
                          personalTags: String, intro: String, isViewed: String,
                          createdTime: Timestamp, updatedTime: Timestamp)
 
-case class MovieDetail(id: Long, movieid: String, movieUrl: String, movieName: String, director: String,
+case class MovieDetail(id: Integer, movieid: String, movieUrl: String, movieName: String, director: String,
                        writers: String, stars: String, genres: String, country: String, officialSite: String, language: String,
-                       releaseDate: String, alsoKnown_as: String, runtime: String, IMDbUrl: String, doubanRate: Double, rateNum: Integer,
+                       releaseDate: String, alsoKnown_as: String, runtime: String, IMDbUrl: String, doubanRate: BigDecimal,
+                       rateNum: Integer,
                        star5: String, star4: String, star3: String, star2: String, star1: String,
                        comparison1: String, comparison2: String, tags: String, storyline: String,
                        alsoLike1Name: String, alsoLike1Url: String, alsoLike2Name: String, alsoLike2Url: String,
@@ -34,8 +35,8 @@ case class MovieDetail(id: Long, movieid: String, movieUrl: String, movieName: S
                        viewedNum: Integer, wantToViewNum: Integer, imageUrl: String,
                        createdTime: Timestamp, updatedTime: Timestamp)
 
-case class MovieEssay(id: Long, movieid: String, userName: String, userUrl: String, comment: String,
-                      commentRate: Double, commentTime: Timestamp, createdTime: Timestamp, updatedTime: Timestamp)
+case class MovieEssay(id: Integer, movieid: String, userName: String, userUrl: String, comment: String,
+                      commentRate: String, commentTime: Date, createdTime: Timestamp, updatedTime: Timestamp)
 
 
 

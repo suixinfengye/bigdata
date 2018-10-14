@@ -43,6 +43,7 @@ CREATE TABLE doulist_movie_detail (
 UPDATE_CACHE_FREQUENCY=300000,
 IMMUTABLE_STORAGE_SCHEME = SINGLE_CELL_ARRAY_WITH_OFFSETS,
 COLUMN_ENCODED_BYTES = 1;
+// 读多写少, 用global index
 create index if not exists doulist_movie_detail_url_idx on doulist_movie_detail (doulist_url) INCLUDE (movieid)
 ASYNCUPDATE_CACHE_FREQUENCY=60000;
 
