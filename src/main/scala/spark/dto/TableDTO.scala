@@ -5,7 +5,7 @@ import java.math.BigDecimal
 
 case class Doulist(id: Integer, movieid: String, doulistUrl: String, doulistName: String, doulistIntr: String,
                    userName: String, userUrl: String, collectNum: Integer, recommendNum: Integer, movieNum: Integer,
-                   doulistCratedDate: Date, doulistUpdatedDate: Date, createdTime: Timestamp,
+                   doulistCratedDate: Long, doulistUpdatedDate: Long, createdTime: Timestamp,
                    updatedTime: Timestamp)
 
 

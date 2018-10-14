@@ -2,3 +2,10 @@
 http://hbase-help.com/?/question/149
 
 2. spark 使用yarn调度后运行缓慢
+
+3. Debezium解析mysqlbinlog中文乱码问题
+sudo vi /etc/mysql/mysql.conf.d/mysqld.cnf
+[client]
+character-set-server = utf8
+
+mysqlbinlog: [ERROR] unknown variable 'character-set-server=utf8'

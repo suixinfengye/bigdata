@@ -1,8 +1,11 @@
 package sample
 
 
+import java.nio.charset.Charset
+import java.sql
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
+import java.time.LocalDate
 
 import org.apache.spark.internal.Logging
 import org.slf4j.LoggerFactory
@@ -10,9 +13,10 @@ import spark.dto.Review
 import utils.{CommomConfig, CommonUtil, MyDateUtil}
 
 import scala.collection.mutable._
-import java.util.{Date, Locale}
+import java.util.{Calendar, Date, Locale}
 
 import org.apache.commons.lang.time.FastDateFormat
+import org.apache.commons.lang3.time.DateUtils
 
 /**
   * feng
@@ -26,24 +30,39 @@ object CommonTest {
     //    regx(test).foreach(r => logger.info(r.toString))
     //    reverse("21565")
     //    testConfig
-//    testDateFormat
-    testTimeStamp
+    //    testDateFormat
+    getCharset
   }
 
+  def getCharset={
+    val c:Charset =Charset.defaultCharset()
+    logger.info(c.name())
+  }
   //1539469197000
-  def testTimeStamp={
-//    logger.info(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format("1539469197000"))
-    logger.info(new Date(1539469197000l).toString)
-    val s = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.CHINA).parse(new Date(1539469197000l).toString)
-    logger.info(s.toString)
+  def testTimeStamp = {
+    //    logger.info(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format("1539469197000"))
+    //    logger.info(new Date(1539469197000l).toString)
+    val date = new Date(13396 * 1000 * 1000 * 1000)
+    //    date.setDate(13396)
+
+    val calendar: Calendar = Calendar.getInstance
+    calendar.after()
+    //    val d = DateUtils.addDays(new Date(0),13396)
+
+    val d: Date = DateUtils.addDays(new Date(0), 13396)
+    val sss = new sql.Date(d.getTime)
+    //    val d: Date = DateUtils.addDays(new Date(0), MyDateUtil.getDate(13396))
+    //    new sql.Date(d.getTime)
+    val s = FastDateFormat.getInstance("yyyy-MM-dd").format(sss)
+    logger.info(s)
   }
 
-  def testDateFormat= {
+  def testDateFormat = {
     val date = new Date
     val dateStr = MyDateUtil.dateFormat(date)
     val curretTime = new Timestamp(date.getTime)
-    logger.info("curretTime:"+curretTime)
-    logger.info("dateStr:"+dateStr)
+    logger.info("curretTime:" + curretTime)
+    logger.info("dateStr:" + dateStr)
 
     val fdf: FastDateFormat = FastDateFormat.getInstance("MM-dd")
     logger.info(fdf.format(new Date()))

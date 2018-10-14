@@ -28,9 +28,13 @@ object KafkaWordCount extends Logging {
       .config("spark.streaming.stopGracefullyOnShutdown", "true")
       .getOrCreate()
 
+    simpleTest(spark)
+  }
+
+  def kafkaTest(spark: SparkSession): Unit = {
     val kafkaParams = Map[String, Object](
-//      "bootstrap.servers" -> "localhost:9092",
-            "bootstrap.servers" -> "192.168.0.101:9092,192.168.0.107:9092,192.168.0.108:9092",
+      //      "bootstrap.servers" -> "localhost:9092",
+      "bootstrap.servers" -> "192.168.0.101:9092,192.168.0.107:9092,192.168.0.108:9092",
       "key.deserializer" -> classOf[StringDeserializer],
       "value.deserializer" -> classOf[StringDeserializer],
       "group.id" -> "KafkaWordCountgroup",
@@ -42,16 +46,44 @@ object KafkaWordCount extends Logging {
     val ssc = new StreamingContext(spark.sparkContext, Seconds(5))
     //    ssc.checkpoint("hdfs://localhost:9000//spark//checkpoint")
 
-//        ssc.checkpoint("hdfs://spark1:9000//spark//checkpoint")
+    //        ssc.checkpoint("hdfs://spark1:9000//spark//checkpoint")
     ssc.checkpoint("/home/feng/software/code/bigdata/spark-warehouse")
     val stream = KafkaUtils.createDirectStream[String, String](
       ssc,
       PreferBrokers,
       Subscribe[String, String](topics, kafkaParams)
     )
-  logInfo("ssssssss")
+    logInfo("ssssssss")
 
     stream.map(mapFunc = record => (record.key, record.value)).foreachRDD(r => r.collect().foreach(t => print("----------------------------------------" + t)))
+
+    ssc.start()
+    ssc.awaitTermination()
+  }
+
+  def simpleTest(spark: SparkSession): Unit = {
+    val kafkaParams = Map[String, Object](
+      "bootstrap.servers" -> "localhost:9092",
+      "key.deserializer" -> classOf[StringDeserializer],
+      "value.deserializer" -> classOf[StringDeserializer],
+      "group.id" -> "KafkaWordCountgroup",
+      "auto.offset.reset" -> "latest",
+      "enable.auto.commit" -> (true: java.lang.Boolean)
+    )
+//    val topics = Array("connect-test")
+    val topics = Array("test-flume-topic")
+    val ssc = new StreamingContext(spark.sparkContext, Seconds(2))
+//    ssc.checkpoint("hdfs://localhost:9000//spark//checkpoint")
+
+    ssc.checkpoint("/home/feng/software/code/bigdata/spark-warehouse")
+    val stream = KafkaUtils.createDirectStream[String, String](
+      ssc,
+      PreferBrokers,
+      Subscribe[String, String](topics, kafkaParams)
+    )
+
+    stream.map(mapFunc = record => (record.key, record.value)).foreachRDD(
+      r => r.collect().foreach(t => print("---------" + t)))
 
     ssc.start()
     ssc.awaitTermination()

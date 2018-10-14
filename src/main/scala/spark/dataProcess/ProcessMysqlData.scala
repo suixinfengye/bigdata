@@ -17,7 +17,7 @@ import org.apache.spark.streaming.kafka010.LocationStrategies.PreferBrokers
 import sample.Tdl
 import spark.dataProcess.StoreMovieEssay.regx
 import spark.dto._
-import utils.{CommomConfig, CommonUtil, MysqlUtil}
+import utils.{CommomConfig, CommonUtil, MyDateUtil, MysqlUtil}
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -90,17 +90,17 @@ object ProcessMysqlData extends Logging {
               val con: Connection = CommonUtil.getPhoenixConnection
               part.foreach {
                 info =>
-                  // 对每个记录
+                  // 对每个类型的记录
                   info._1 match {
                     case "tbl" => saveTbl(info, con)
                     case "steaming_record" => saveSteamingRecord(info, con)
-                    case "doulist" => saveDoulist(info,con)
-                    case "doulist_movie_detail" => saveDoulistMovieDetail(info,con)
-                    case "film_critics" => saveFilmCritics(info,con)
-                    case "movie_base_info" => saveMovieBaseInfo(info,con)
-                    case "movie_detail" => saveMovieDetail(info,con)
-                    case "movie_essay" => saveMovieEssay(info,con)
-                    case _ => logInfo("---------not match-----")
+                    case "doulist" => saveDoulist(info, con)
+                    case "doulist_movie_detail" => saveDoulistMovieDetail(info, con)
+                    case "film_critics" => saveFilmCritics(info, con)
+                    case "movie_base_info" => saveMovieBaseInfo(info, con)
+                    case "movie_detail" => saveMovieDetail(info, con)
+                    case "movie_essay" => saveMovieEssay(info, con)
+                    case _ => logInfo("---------not match-----:"+info._1+info._2.toString())
                   }
               }
               MysqlUtil.colseConnection(con)
@@ -154,29 +154,47 @@ object ProcessMysqlData extends Logging {
     executeAndCommit(pstmt, con)
   }
 
+  /**
+    * TODO
+    * 1. kafka中文乱码
+    * 2. 找出是哪一段导致不能存入数据库
+    * @param info
+    * @param con
+    */
   def saveDoulist(info: (String, ArrayBuffer[String]), con: Connection): Unit = {
+    val s = info._2(0).toString
+    logInfo("json:" + s)
+    logInfo("json:" + new String(s.getBytes, "UTF-8") )
+
     val list: ArrayBuffer[Doulist] = info._2.map(t => JSON.parseObject(t, classOf[Doulist]))
-    val sql = "upsert INTO doulist(id,movieid,doulist_url,doulist_name,doulist_intr,user_name,user_url," +
-      "collect_num,recommend_num,movie_num,doulist_cratedDate,doulist_updatedDate,created_time)" +
-      "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,CONVERT_TZ(CURRENT_DATE(), 'UTC', 'Asia/Shanghai'))"
+    //    val sql = "upsert INTO doulist(id,movieid,doulist_url,doulist_name,doulist_intr,user_name,user_url," +
+    //      "collect_num,recommend_num,movie_num,doulist_cratedDate,doulist_updatedDate,created_time)" +
+    //      "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,CONVERT_TZ(CURRENT_DATE(), 'UTC', 'Asia/Shanghai'))"
+    val sql = "upsert INTO doulist(id,movieid,doulist_url,doulist_name)" +
+      "VALUES(?,?,?,?)"
     logInfo(sql)
     logInfo(list(0).toString)
     logInfo("insert doulist size:" + list.size)
     val pstmt: PreparedStatement = con.prepareStatement(sql)
     list.foreach {
       r =>
+        logInfo("r.doulistName:"+r.doulistName)
+        logInfo("doulistName UTF-8:"+new String(r.doulistName.getBytes, "UTF-8"))
+        logInfo("doulistName UTF-82:"+new String(r.doulistName.getBytes("latin1"), "UTF-8"))
+        logInfo("doulistName Unicode:"+new String(r.doulistName.getBytes, "Unicode"))
+        logInfo("doulistName latin1:"+new String(r.doulistName.getBytes("latin1"), "GBK"))
         pstmt.setInt(1, r.id)
         pstmt.setString(2, r.movieid)
         pstmt.setString(3, r.doulistUrl)
         pstmt.setString(4, r.doulistName)
-        pstmt.setString(5, r.doulistIntr)
-        pstmt.setString(6, r.userName)
-        pstmt.setString(7, r.userUrl)
-        pstmt.setInt(8, r.collectNum)
-        pstmt.setInt(9, r.recommendNum)
-        pstmt.setInt(10, r.movieNum)
-        pstmt.setDate(11, r.doulistCratedDate)
-        pstmt.setDate(12, r.doulistUpdatedDate)
+        //                pstmt.setString(5, r.doulistIntr)
+        //                pstmt.setString(6, r.userName)
+        //                pstmt.setString(7, r.userUrl)
+        //        pstmt.setInt(8, r.collectNum)
+        //        pstmt.setInt(9, r.recommendNum)
+        //        pstmt.setInt(10, r.movieNum)
+        //        pstmt.setDate(4, MyDateUtil.getDate(r.doulistCratedDate.toInt))
+        //        pstmt.setDate(5, MyDateUtil.getDate(r.doulistUpdatedDate.toInt))
         pstmt.addBatch()
     }
     executeAndCommit(pstmt, con)
@@ -369,9 +387,15 @@ object ProcessMysqlData extends Logging {
   }
 
   def getMysqlTopic: Array[String] = {
-    var topics = Array("mysqlfullfillment.test.steaming_record", "mysqlfullfillment.test.tbl")
+    var topics = Array("mysqlfullfillment.test.steaming_record", "mysqlfullfillment.test.tbl",
+      "mysqlfullfillment.test.doulist", "mysqlfullfillment.test.doulist_movie_detail",
+      "mysqlfullfillment.test.film_critics", "mysqlfullfillment.test.movie_base_info", "mysqlfullfillment.test.movie_detail",
+      "mysqlfullfillment.test.movie_essay")
     if (CommomConfig.isTest) {
-      topics = Array("mysqlfullfillment.test.steaming_record", "mysqlfullfillment.test.tbl")
+      topics = Array("mysqlfullfillment.test.steaming_record", "mysqlfullfillment.test.tbl",
+        "mysqlfullfillment.test.doulist", "mysqlfullfillment.test.doulist_movie_detail",
+        "mysqlfullfillment.test.film_critics", "mysqlfullfillment.test.movie_base_info", "mysqlfullfillment.test.movie_detail",
+        "mysqlfullfillment.test.movie_essay")
     }
     logInfo("topic:" + topics)
     topics
