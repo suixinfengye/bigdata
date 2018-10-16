@@ -20,15 +20,13 @@ import org.apache.spark.streaming.kafka010.ConsumerStrategies.Subscribe
 object KafkaWordCount extends Logging {
 
   def main(args: Array[String]) {
-
     val spark = SparkSession
       .builder()
       .master("local")
       .appName("KafkaWordCount")
       .config("spark.streaming.stopGracefullyOnShutdown", "true")
       .getOrCreate()
-
-    simpleTest(spark)
+    simpleTestCode(spark)
   }
 
   def kafkaTest(spark: SparkSession): Unit = {
@@ -84,6 +82,32 @@ object KafkaWordCount extends Logging {
 
     stream.map(mapFunc = record => (record.key, record.value)).foreachRDD(
       r => r.collect().foreach(t => print("---------" + t)))
+
+    ssc.start()
+    ssc.awaitTermination()
+  }
+
+  def simpleTestCode(spark: SparkSession): Unit = {
+    val kafkaParams = Map[String, Object](
+      "bootstrap.servers" -> "localhost:9092",
+      "key.deserializer" -> classOf[StringDeserializer],
+      "value.deserializer" -> classOf[StringDeserializer],
+      "group.id" -> "KafkaWordCountgroup",
+      "auto.offset.reset" -> "latest",
+      "enable.auto.commit" -> (true: java.lang.Boolean)
+    )
+    val topics = Array("mysqlfullfillment.test.doulist")
+    val ssc = new StreamingContext(spark.sparkContext, Seconds(2))
+
+    ssc.checkpoint("/home/feng/software/code/bigdata/spark-warehouse")
+    val stream = KafkaUtils.createDirectStream[String, String](
+      ssc,
+      PreferBrokers,
+      Subscribe[String, String](topics, kafkaParams)
+    )
+
+    stream.map(mapFunc = record => (record.key, record.value)).foreachRDD(
+      r => r.collect().foreach(t => print("message:" + t)))
 
     ssc.start()
     ssc.awaitTermination()

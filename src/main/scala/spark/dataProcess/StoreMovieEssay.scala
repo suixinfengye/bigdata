@@ -183,7 +183,7 @@ object StoreMovieEssay extends Logging {
     val reviewPattern = "https://movie.douban.com/review/"
     val contentPattern = ":::"
     val reviewList: ListBuffer[Review] = ListBuffer[Review]()
-    if (list == None) {
+    if (list == null) {
       return  reviewList.toList
     }
     list.foreach { item =>

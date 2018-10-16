@@ -9,3 +9,16 @@ sudo vi /etc/mysql/mysql.conf.d/mysqld.cnf
 character-set-server = utf8
 
 mysqlbinlog: [ERROR] unknown variable 'character-set-server=utf8'
+
+有个kafka乱码问题
+用Debezium解析mysqlbinlog 发送到kafka,kafka接收数据有中文乱码
+在flume和用kafka-console-producer.sh手动造数据,kafka都没出现乱码问题
+改过mysqld.cnf character-set-server = utf8,无效
+Debezium中还没找到哪里可以设置编码格式
+有人遇过这种问题吗? 或者有什么建议
+
+应该是序列化问题
+https://debezium.io/docs/configuration/avro/
+
+可能又要安装confluent版本~
+consumer同样使用avro反序列化 试试看
