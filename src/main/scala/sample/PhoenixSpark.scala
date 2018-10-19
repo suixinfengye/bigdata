@@ -67,15 +67,12 @@ object PhoenixSpark {
     val dateStr = MyDateUtil.dateFormat(date)
     val curretTime = new Timestamp(date.getTime)
     val recordType = MyConstant.RECORD_TYPE_MEDM
-    //t:(String, List[Review])
-    //主键设置为 movieid+timestamp, 每一个批次处理时,都是按movieid分组的,一个批次同一个movieid只会有一个
-    val re = SteamingRecord(Random.nextInt(1000) + dateStr, null, curretTime, Random.nextInt(1000), recordType, Random
-      .nextInt(1000) + "id", curretTime, null)
+//    val re = SteamingRecord(Random.nextInt(1000) + dateStr, null, curretTime, Random.nextInt(1000), recordType, Random.nextInt(1000) + "id", curretTime, null)
+    val re = SteamingRecord(dateStr, null, curretTime,1, null, null, curretTime, null)
     logger.info(re.toString)
     val t = spark.createDataset(Seq(re))
     t.show()
     val conf = CommonUtil.getHbaseConfig
-    conf.set("phoenix.query.dateFormatTimeZone", "GMT+08:00");
     t.toDF().saveToPhoenix("STEAMING_RECORD",conf,Option(CommonUtil.getZkurl))
   }
 

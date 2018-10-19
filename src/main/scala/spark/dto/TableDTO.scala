@@ -12,11 +12,11 @@ case class Doulist(id: Integer, movieid: String, doulistUrl: String, doulistName
 case class DoulistMovieDetail(id: Integer, movieid: String, doulistUrl: String, createdTime: Timestamp, updatedTime: Timestamp)
 
 case class FilmCritics(id: Integer, movieid: String, filmCriticsUrl: String, title: String, userName: String,
-                       userUrl: String, commentRate:BigDecimal, commentTime: Date, uselessNum: Integer,
+                       userUrl: String, commentRate:BigDecimal, commentTime: Long, uselessNum: Integer,
                        usefulNum: Integer, likeNum: Integer, recommendNum: Integer,
                        review: String, createdTime: Timestamp, updatedTime: Timestamp)
 
-case class MovieBaseInfo(id: Integer, movieid: String, movieName: String, viewDate: Date, personalRate: Integer,
+case class MovieBaseInfo(id: Integer, movieid: String, movieName: String, viewDate: Long, personalRate: Integer,
                          personalTags: String, intro: String, isViewed: String,
                          createdTime: Timestamp, updatedTime: Timestamp)
 
@@ -36,7 +36,7 @@ case class MovieDetail(id: Integer, movieid: String, movieUrl: String, movieName
                        createdTime: Timestamp, updatedTime: Timestamp)
 
 case class MovieEssay(id: Integer, movieid: String, userName: String, userUrl: String, comment: String,
-                      commentRate: String, commentTime: Date, createdTime: Timestamp, updatedTime: Timestamp)
+                      commentRate: String, commentTime: Long, createdTime: Timestamp, updatedTime: Timestamp)
 
 
 

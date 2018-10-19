@@ -17,7 +17,7 @@ object PhoenixTest {
   def main(args: Array[String]): Unit = {
 
     val con: Connection = CommonUtil.getPhoenixConnection
-    testTBL(con)
+    testSTEAMING_RECORD(con)
   }
 
   def testSTEAMING_RECORD(con: Connection): Unit = {

@@ -37,8 +37,8 @@ CREATE TABLE doulist_movie_detail (
   id INTEGER PRIMARY KEY ,
   af.movieid varchar(16),
   af.doulist_url varchar(128),
-  bf.ucreated_time date,
-  bf.uupdated_time date
+  bf.created_time date,
+  bf.updated_time date
 ) 
 UPDATE_CACHE_FREQUENCY=300000,
 IMMUTABLE_STORAGE_SCHEME = SINGLE_CELL_ARRAY_WITH_OFFSETS,

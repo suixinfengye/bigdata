@@ -4,6 +4,7 @@ import java.sql.{Connection, PreparedStatement, SQLException, Timestamp}
 import java.util.Date
 
 import com.alibaba.fastjson.JSON
+import org.apache.commons.lang3.StringUtils
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.spark.internal.Logging
@@ -90,6 +91,7 @@ object ProcessMysqlData extends Logging {
               val con: Connection = CommonUtil.getPhoenixConnection
               part.foreach {
                 info =>
+                  logInfo("ArrayBuffer[String]:" + info._1+info._2(0).toString)
                   // 对每个类型的记录
                   info._1 match {
                     case "tbl" => saveTbl(info, con)
@@ -100,7 +102,7 @@ object ProcessMysqlData extends Logging {
                     case "movie_base_info" => saveMovieBaseInfo(info, con)
                     case "movie_detail" => saveMovieDetail(info, con)
                     case "movie_essay" => saveMovieEssay(info, con)
-                    case _ => logInfo("---------not match-----:"+info._1+info._2.toString())
+                    case _ => logInfo("---------not match-----:" + info._1 + info._2.toString())
                   }
               }
               MysqlUtil.colseConnection(con)
@@ -158,43 +160,44 @@ object ProcessMysqlData extends Logging {
     * TODO
     * 1. kafka中文乱码
     * 2. 找出是哪一段导致不能存入数据库
+    *
     * @param info
     * @param con
     */
   def saveDoulist(info: (String, ArrayBuffer[String]), con: Connection): Unit = {
     val s = info._2(0).toString
     logInfo("json:" + s)
-    logInfo("json:" + new String(s.getBytes, "UTF-8") )
+    logInfo("json:" + new String(s.getBytes, "UTF-8"))
 
     val list: ArrayBuffer[Doulist] = info._2.map(t => JSON.parseObject(t, classOf[Doulist]))
-    //    val sql = "upsert INTO doulist(id,movieid,doulist_url,doulist_name,doulist_intr,user_name,user_url," +
-    //      "collect_num,recommend_num,movie_num,doulist_cratedDate,doulist_updatedDate,created_time)" +
-    //      "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,CONVERT_TZ(CURRENT_DATE(), 'UTC', 'Asia/Shanghai'))"
-    val sql = "upsert INTO doulist(id,movieid,doulist_url,doulist_name)" +
-      "VALUES(?,?,?,?)"
+    val sql = "upsert INTO doulist(id,movieid,doulist_url,doulist_name,doulist_intr,user_name,user_url," +
+      "collect_num,recommend_num,movie_num,doulist_cratedDate,doulist_updatedDate,created_time)" +
+      "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,CONVERT_TZ(CURRENT_DATE(), 'UTC', 'Asia/Shanghai'))"
+    //    val sql = "upsert INTO doulist(id,movieid,doulist_url,doulist_name)" +
+    //      "VALUES(?,?,?,?)"
     logInfo(sql)
     logInfo(list(0).toString)
     logInfo("insert doulist size:" + list.size)
     val pstmt: PreparedStatement = con.prepareStatement(sql)
     list.foreach {
       r =>
-        logInfo("r.doulistName:"+r.doulistName)
-        logInfo("doulistName UTF-8:"+new String(r.doulistName.getBytes, "UTF-8"))
-        logInfo("doulistName UTF-82:"+new String(r.doulistName.getBytes("latin1"), "UTF-8"))
-        logInfo("doulistName Unicode:"+new String(r.doulistName.getBytes, "Unicode"))
-        logInfo("doulistName latin1:"+new String(r.doulistName.getBytes("latin1"), "GBK"))
+        logInfo("r.doulistName:" + r.doulistName)
+        logInfo("doulistName UTF-8:" + new String(r.doulistName.getBytes, "UTF-8"))
+        logInfo("doulistName UTF-82:" + new String(r.doulistName.getBytes("latin1"), "UTF-8"))
+        logInfo("doulistName Unicode:" + new String(r.doulistName.getBytes, "Unicode"))
+        logInfo("doulistName latin1:" + new String(r.doulistName.getBytes("latin1"), "GBK"))
         pstmt.setInt(1, r.id)
         pstmt.setString(2, r.movieid)
         pstmt.setString(3, r.doulistUrl)
         pstmt.setString(4, r.doulistName)
-        //                pstmt.setString(5, r.doulistIntr)
-        //                pstmt.setString(6, r.userName)
-        //                pstmt.setString(7, r.userUrl)
-        //        pstmt.setInt(8, r.collectNum)
-        //        pstmt.setInt(9, r.recommendNum)
-        //        pstmt.setInt(10, r.movieNum)
-        //        pstmt.setDate(4, MyDateUtil.getDate(r.doulistCratedDate.toInt))
-        //        pstmt.setDate(5, MyDateUtil.getDate(r.doulistUpdatedDate.toInt))
+        pstmt.setString(5, r.doulistIntr)
+        pstmt.setString(6, r.userName)
+        pstmt.setString(7, r.userUrl)
+        pstmt.setInt(8, r.collectNum)
+        pstmt.setInt(9, r.recommendNum)
+        pstmt.setInt(10, r.movieNum)
+        pstmt.setDate(11, MyDateUtil.getDate(r.doulistCratedDate.toInt))
+        pstmt.setDate(12, MyDateUtil.getDate(r.doulistUpdatedDate.toInt))
         pstmt.addBatch()
     }
     executeAndCommit(pstmt, con)
@@ -203,6 +206,7 @@ object ProcessMysqlData extends Logging {
   def saveDoulistMovieDetail(info: (String, ArrayBuffer[String]), con: Connection): Unit = {
     val list: ArrayBuffer[DoulistMovieDetail] = info._2.map(t => JSON.parseObject(t, classOf[DoulistMovieDetail]))
     val sql = "upsert INTO doulist_movie_detail(id,movieid,doulist_url,created_time)VALUES (?,?,?,CONVERT_TZ(CURRENT_DATE(), 'UTC', 'Asia/Shanghai'))"
+
     logInfo(sql)
     logInfo(list(0).toString)
     logInfo("insert DoulistMovieDetail size:" + list.size)
@@ -228,19 +232,23 @@ object ProcessMysqlData extends Logging {
     val pstmt: PreparedStatement = con.prepareStatement(sql)
     list.foreach {
       r =>
+        var likeNum = r.likeNum
+        if (r.likeNum==null){
+          likeNum = -1
+        }
         pstmt.setInt(1, r.id)
         pstmt.setString(2, r.movieid)
         pstmt.setString(3, r.filmCriticsUrl)
         pstmt.setString(4, r.title)
         pstmt.setString(5, r.userName)
         pstmt.setString(6, r.userUrl)
-        pstmt.setBigDecimal(7, r.commentRate)
-        pstmt.setDate(8, r.commentTime)
+        pstmt.setBigDecimal(7, new java.math.BigDecimal(1.2))
+        pstmt.setDate(8,  MyDateUtil.getDate(r.commentTime.toInt))
         pstmt.setInt(9, r.uselessNum)
         pstmt.setInt(10, r.usefulNum)
-        pstmt.setInt(11, r.likeNum)
+        pstmt.setInt(11, likeNum)
         pstmt.setInt(12, r.recommendNum)
-        pstmt.setString(13, r.review)
+        pstmt.setString(13, r.review+"")
         pstmt.addBatch()
     }
     executeAndCommit(pstmt, con)
@@ -260,7 +268,7 @@ object ProcessMysqlData extends Logging {
         pstmt.setInt(1, r.id)
         pstmt.setString(2, r.movieid)
         pstmt.setString(3, r.movieName)
-        pstmt.setDate(4, r.viewDate)
+        pstmt.setDate(4, MyDateUtil.getDate(r.viewDate.toInt))
         pstmt.setInt(5, r.personalRate)
         pstmt.setString(6, r.personalTags)
         pstmt.setString(7, r.intro)
@@ -361,7 +369,7 @@ object ProcessMysqlData extends Logging {
         pstmt.setString(4, r.userUrl)
         pstmt.setString(5, r.comment)
         pstmt.setString(6, r.commentRate)
-        pstmt.setDate(7, r.commentTime)
+        pstmt.setDate(7, MyDateUtil.getDate(r.commentTime.toInt))
         pstmt.addBatch()
     }
     executeAndCommit(pstmt, con)
