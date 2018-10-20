@@ -52,6 +52,7 @@ object ProcessMysqlData extends Logging {
       "group.id" -> "ProcessMysqlDataGroup",
       "auto.offset.reset" -> "latest",
       "enable.auto.commit" -> (true: java.lang.Boolean)
+//        "serializer.encoding"-> "UTF-8"
     )
     val topics: Array[String] = getMysqlTopic
     //config spark Streaming
@@ -311,7 +312,7 @@ object ProcessMysqlData extends Logging {
         pstmt.setString(13, r.alsoKnown_as)
         pstmt.setString(14, r.runtime)
         pstmt.setString(15, r.IMDbUrl)
-        pstmt.setBigDecimal(16, r.doubanRate)
+        pstmt.setBigDecimal(16, new java.math.BigDecimal(1.2))//r.doubanRate
         pstmt.setInt(17, r.rateNum)
         pstmt.setString(18, r.star5)
         pstmt.setString(19, r.star4)

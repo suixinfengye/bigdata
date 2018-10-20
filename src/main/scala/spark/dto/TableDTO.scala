@@ -22,7 +22,7 @@ case class MovieBaseInfo(id: Integer, movieid: String, movieName: String, viewDa
 
 case class MovieDetail(id: Integer, movieid: String, movieUrl: String, movieName: String, director: String,
                        writers: String, stars: String, genres: String, country: String, officialSite: String, language: String,
-                       releaseDate: String, alsoKnown_as: String, runtime: String, IMDbUrl: String, doubanRate: BigDecimal,
+                       releaseDate: String, alsoKnown_as: String, runtime: String, IMDbUrl: String, doubanRate: String,
                        rateNum: Integer,
                        star5: String, star4: String, star3: String, star2: String, star1: String,
                        comparison1: String, comparison2: String, tags: String, storyline: String,
