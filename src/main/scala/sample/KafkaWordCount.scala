@@ -30,6 +30,14 @@ object KafkaWordCount extends Logging {
   }
 
   def kafkaTest(spark: SparkSession): Unit = {
+    /**
+      * earliest
+      * 当各分区下有已提交的offset时，从提交的offset开始消费；无提交的offset时，从头开始消费
+      * latest
+      * 当各分区下有已提交的offset时，从提交的offset开始消费；无提交的offset时，消费新产生的该分区下的数据
+      * none
+      * topic各分区都存在已提交的offset时，从offset后开始消费；只要有一个分区不存在已提交的offset，则抛出异常
+      */
     val kafkaParams = Map[String, Object](
       //      "bootstrap.servers" -> "localhost:9092",
       "bootstrap.servers" -> "192.168.0.101:9092,192.168.0.107:9092,192.168.0.108:9092",
@@ -68,10 +76,10 @@ object KafkaWordCount extends Logging {
       "auto.offset.reset" -> "latest",
       "enable.auto.commit" -> (true: java.lang.Boolean)
     )
-//    val topics = Array("connect-test")
+    //    val topics = Array("connect-test")
     val topics = Array("test-flume-topic")
     val ssc = new StreamingContext(spark.sparkContext, Seconds(2))
-//    ssc.checkpoint("hdfs://localhost:9000//spark//checkpoint")
+    //    ssc.checkpoint("hdfs://localhost:9000//spark//checkpoint")
 
     ssc.checkpoint("/home/feng/software/code/bigdata/spark-warehouse")
     val stream = KafkaUtils.createDirectStream[String, String](

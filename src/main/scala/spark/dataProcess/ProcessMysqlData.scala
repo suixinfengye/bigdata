@@ -6,6 +6,7 @@ import java.util.Date
 import com.alibaba.fastjson.JSON
 import org.apache.commons.lang3.StringUtils
 import org.apache.kafka.clients.consumer.ConsumerRecord
+import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.spark.internal.Logging
 import org.apache.spark.rdd.RDD
@@ -13,21 +14,23 @@ import org.apache.spark.sql.SparkSession
 import org.apache.spark.streaming.dstream.InputDStream
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.apache.spark.streaming.kafka010.ConsumerStrategies.Subscribe
-import org.apache.spark.streaming.kafka010.KafkaUtils
+import org.apache.spark.streaming.kafka010._
 import org.apache.spark.streaming.kafka010.LocationStrategies.PreferBrokers
+import redis.clients.jedis.{Jedis, JedisCluster}
 import sample.Tdl
 import spark.dataProcess.StoreMovieEssay.regx
 import spark.dto._
-import utils.{CommomConfig, CommonUtil, MyDateUtil, MysqlUtil}
+import utils._
 
 import scala.collection.mutable.ArrayBuffer
 
-/**
+/** https://blog.csdn.net/xianpanjia4616/article/details/80738961
   * feng
   * 18-10-9
   */
 object ProcessMysqlData extends Logging {
   val batchInterval: Int = 2
+  val groupId = "ProcessMysqlDataGroup"
 
   def main(args: Array[String]): Unit = {
     val spark = SparkSession
@@ -44,31 +47,96 @@ object ProcessMysqlData extends Logging {
     //设置当前为测试环境
     CommonUtil.setTestEvn
 
+
     // config kafka
     val kafkaParams = Map[String, Object](
       "bootstrap.servers" -> CommonUtil.getKafkaServers,
       "key.deserializer" -> classOf[StringDeserializer],
       "value.deserializer" -> classOf[StringDeserializer],
-      "group.id" -> "ProcessMysqlDataGroup",
+      "group.id" -> groupId,
       "auto.offset.reset" -> "latest",
-      "enable.auto.commit" -> (true: java.lang.Boolean)
-//        "serializer.encoding"-> "UTF-8"
+      "enable.auto.commit" -> (false: java.lang.Boolean)
+      //        "serializer.encoding"-> "UTF-8"
     )
+    //获取offset
+    var formdbOffset: Map[TopicPartition, Long] = JedisOffset(groupId)
+
     val topics: Array[String] = getMysqlTopic
     //config spark Streaming
     val ssc = new StreamingContext(spark.sparkContext, Seconds(batchInterval))
     ssc.checkpoint(CommonUtil.getCheckpointDir)
 
-    val stream = KafkaUtils.createDirectStream[String, String](
-      ssc,
-      PreferBrokers,
-      Subscribe[String, String](topics, kafkaParams)
-    )
+    //拉取kafka数据
+    val stream: InputDStream[ConsumerRecord[String, String]] = if (formdbOffset.size == 0) {
+      KafkaUtils.createDirectStream[String, String](
+        ssc,
+        LocationStrategies.PreferConsistent,
+        ConsumerStrategies.Subscribe[String, String](topics, kafkaParams)
+      )
+    } else {
+      KafkaUtils.createDirectStream(
+        ssc,
+        LocationStrategies.PreferConsistent,
+        ConsumerStrategies.Assign[String, String](formdbOffset.keys, kafkaParams, formdbOffset)
 
-    processData(spark, stream)
+      )
+    }
+
+    processDataWithRedis(spark, stream)
+    //    processData(spark, stream)
 
     ssc.start()
     ssc.awaitTermination()
+  }
+
+  /**
+    * 记录存入Phoenix
+    * offset存入redis
+    * @param session
+    * @param stream
+    */
+
+  def processDataWithRedis(session: SparkSession, stream: InputDStream[ConsumerRecord[String, String]]) = {
+    stream.foreachRDD { rdd =>
+      if (!rdd.isEmpty()) {
+        val offsetRange = rdd.asInstanceOf[HasOffsetRanges].offsetRanges
+
+        val tableValue = rdd.filter(r => r.value != null)
+          .map(record => convertTableJsonStr(record.value)).reduceByKey(_ ++ _)
+        // 按partition遍历
+        tableValue.foreachPartition {
+          part =>
+            //get Connection in each partition
+            val con: Connection = CommonUtil.getPhoenixConnection
+            part.foreach {
+              info =>
+                logInfo("ArrayBuffer[String]:" + info._1 + info._2(0).toString)
+                // 对每个类型的记录
+                info._1 match {
+                  case "tbl" => saveTbl(info, con)
+                  case "steaming_record" => saveSteamingRecord(info, con)
+                  case "doulist" => saveDoulist(info, con)
+                  case "doulist_movie_detail" => saveDoulistMovieDetail(info, con)
+                  case "film_critics" => saveFilmCritics(info, con)
+                  case "movie_base_info" => saveMovieBaseInfo(info, con)
+                  case "movie_detail" => saveMovieDetail(info, con)
+                  case "movie_essay" => saveMovieEssay(info, con)
+                  case _ => logInfo("---------not match-----:" + info._1 + info._2.toString())
+                }
+            }
+            MysqlUtil.colseConnection(con)
+        }
+        val jedis: JedisCluster = RedisUtil.getJedisCluster
+        logInfo("offsetRange:"+offsetRange)
+        //偏移量存入redis
+        for (or <- offsetRange) {
+          logInfo("redis info:"+groupId +":"+or.topic + "-" + or.partition+":"+ or.untilOffset.toString)
+          jedis.hset(groupId, or.topic + "-" + or.partition, or.untilOffset.toString)
+        }
+      }
+      rdd.count()
+
+    }
   }
 
   /**
@@ -85,6 +153,7 @@ object ProcessMysqlData extends Logging {
     batchTableRecordDS.foreachRDD {
       rdd: RDD[(String, ArrayBuffer[String])] =>
         if (!rdd.isEmpty()) {
+
           // 按partition遍历
           rdd.foreachPartition {
             part =>
@@ -92,7 +161,7 @@ object ProcessMysqlData extends Logging {
               val con: Connection = CommonUtil.getPhoenixConnection
               part.foreach {
                 info =>
-                  logInfo("ArrayBuffer[String]:" + info._1+info._2(0).toString)
+                  logInfo("ArrayBuffer[String]:" + info._1 + info._2(0).toString)
                   // 对每个类型的记录
                   info._1 match {
                     case "tbl" => saveTbl(info, con)
@@ -113,6 +182,7 @@ object ProcessMysqlData extends Logging {
         }
         //强制runjob
         rdd.count()
+
     }
 
   }
@@ -234,7 +304,7 @@ object ProcessMysqlData extends Logging {
     list.foreach {
       r =>
         var likeNum = r.likeNum
-        if (r.likeNum==null){
+        if (r.likeNum == null) {
           likeNum = -1
         }
         pstmt.setInt(1, r.id)
@@ -244,12 +314,12 @@ object ProcessMysqlData extends Logging {
         pstmt.setString(5, r.userName)
         pstmt.setString(6, r.userUrl)
         pstmt.setBigDecimal(7, new java.math.BigDecimal(1.2))
-        pstmt.setDate(8,  MyDateUtil.getDate(r.commentTime.toInt))
+        pstmt.setDate(8, MyDateUtil.getDate(r.commentTime.toInt))
         pstmt.setInt(9, r.uselessNum)
         pstmt.setInt(10, r.usefulNum)
         pstmt.setInt(11, likeNum)
         pstmt.setInt(12, r.recommendNum)
-        pstmt.setString(13, r.review+"")
+        pstmt.setString(13, r.review + "")
         pstmt.addBatch()
     }
     executeAndCommit(pstmt, con)
@@ -312,7 +382,7 @@ object ProcessMysqlData extends Logging {
         pstmt.setString(13, r.alsoKnown_as)
         pstmt.setString(14, r.runtime)
         pstmt.setString(15, r.IMDbUrl)
-        pstmt.setBigDecimal(16, new java.math.BigDecimal(1.2))//r.doubanRate
+        pstmt.setBigDecimal(16, new java.math.BigDecimal(1.2)) //r.doubanRate
         pstmt.setInt(17, r.rateNum)
         pstmt.setString(18, r.star5)
         pstmt.setString(19, r.star4)

@@ -13,7 +13,7 @@ import org.apache.spark.sql.SparkSession
 import org.apache.spark.streaming.dstream.{DStream, InputDStream}
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.apache.spark.streaming.kafka010.ConsumerStrategies.Subscribe
-import org.apache.spark.streaming.kafka010.KafkaUtils
+import org.apache.spark.streaming.kafka010.{KafkaUtils, LocationStrategies}
 import org.apache.spark.streaming.kafka010.LocationStrategies.PreferBrokers
 import spark.dto.{Review, SteamingRecord}
 import utils.{CommomConfig, CommonUtil, MyConstant, MyDateUtil}
@@ -71,7 +71,7 @@ object StoreMovieEssay extends Logging {
     ssc.checkpoint(CommonUtil.getCheckpointDir)
     val stream = KafkaUtils.createDirectStream[String, String](
       ssc,
-      PreferBrokers,
+      LocationStrategies.PreferConsistent,
       Subscribe[String, String](topics, kafkaParams)
     )
 

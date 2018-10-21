@@ -35,4 +35,6 @@ consumer同样使用avro反序列化 试试看
 BigDecimal反序列化出错
 
 中文不能插入
- 空值处理
+空值处理
+
+redis-monitor 监控安装失败
