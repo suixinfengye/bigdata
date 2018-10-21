@@ -42,12 +42,41 @@ $phoenix/bin/sqlline.py 192.168.0.101:2181,192.168.0.107:2181,192.168.0.108:2181
 # redis
 ps -ef | grep redis
 netstat -tnlp | grep redis
-
+cd /usr/local/userlib/redis-3.2.12
 src/redis-cli -h 192.168.0.101 -p 7000 shutdown
+src/redis-cli -h 192.168.0.107 -p 7000 shutdown
 src/redis-cli -h 192.168.0.108 -p 7000 shutdown
 
 src/redis-server cluster-redis/7000/redis.conf
 src/redis-server cluster-redis/7001/redis.conf
 
+src/redis-cli -h 192.168.0.101 -c -p 7000
+cluster nodes
+cluster info
+info
+
+
+source /home/feng/software/code/python/RedisLive/venv/bin/activate
+cd /home/feng/software/code/python/RedisLive/redis-monitor/src/
+./redis_monitor.py
+
 yum install curl
 curl -L get.rvm.io | bash -s stable
+usermod -a -G rvm root
+source /usr/local/rvm/scripts/rvm
+rvm list known
+yum -y update nss
+rvm install 2.4.4
+rvm use 2.4.4
+rvm remove 1.8.7
+ruby --version
+
+src/redis-trib.rb  create  --replicas  1 192.168.0.101:7000 192.168.0.101:7001 192.168.0.107:7000 192.168.0.107:7001 192.168.0.108:7000 192.168.0.108:7001
+
+https://blog.csdn.net/chenxinchongcn/article/details/78666374?utm_source=blogxgwz0
+https://www.cnblogs.com/carryping/p/7447823.html
+https://blog.csdn.net/lsxf_xin/article/details/79442198
+https://blog.csdn.net/huwh_/article/details/79242625
+
+#指定 redis 只接收来自于该 IP 地址的请求，如果不进行设置，那么将处理所有请求
+bind 127.0.0.1
