@@ -4,19 +4,15 @@ package sample
 import java.nio.charset.Charset
 import java.sql
 import java.sql.Timestamp
-import java.text.SimpleDateFormat
-import java.time.LocalDate
+import java.util.{Calendar, Date}
 
-import org.apache.spark.internal.Logging
+import org.apache.commons.lang.time.FastDateFormat
+import org.apache.commons.lang3.time.DateUtils
 import org.slf4j.LoggerFactory
 import spark.dto.Review
 import utils.{CommomConfig, CommonUtil, MyDateUtil}
 
 import scala.collection.mutable._
-import java.util.{Calendar, Date, Locale}
-
-import org.apache.commons.lang.time.FastDateFormat
-import org.apache.commons.lang3.time.DateUtils
 
 /**
   * feng
@@ -33,6 +29,11 @@ object CommonTest {
     //    testDateFormat
     getCharset
   }
+
+
+//  def testNull: Unit ={
+//    reco
+//  }
 
   def getCharset={
     val c:Charset =Charset.defaultCharset()

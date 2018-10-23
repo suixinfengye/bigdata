@@ -4,7 +4,8 @@ import java.util
 
 import org.apache.kafka.common.TopicPartition
 import org.slf4j.LoggerFactory
-import utils.RedisUtil
+import utils.{CommonUtil, RedisUtil}
+
 import scala.collection.JavaConversions._
 
 /**
@@ -16,8 +17,9 @@ object JedisOffset {
 
   def apply(groupId: String) = {
     var fromdbOffset = Map[TopicPartition, Long]()
-    val jedis1 = RedisUtil.getJedisCluster
-    val topicPartitionOffset: util.Map[String, String] = jedis1.hgetAll(groupId)
+    val jedis = CommonUtil.getRedis
+    val s = RedisUtil.getLocalJedis
+    val topicPartitionOffset: util.Map[String, String] = jedis.hgetAll(groupId)
 
     val topicPartitionOffsetlist: List[(String, String)] = topicPartitionOffset.toList
     for (topicPL <- topicPartitionOffsetlist) {

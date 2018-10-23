@@ -1,13 +1,12 @@
 package spark.dto
 
-import java.sql.{Date, Timestamp}
 import java.math.BigDecimal
+import java.sql.Timestamp
 
 case class Doulist(id: Integer, movieid: String, doulistUrl: String, doulistName: String, doulistIntr: String,
                    userName: String, userUrl: String, collectNum: Integer, recommendNum: Integer, movieNum: Integer,
                    doulistCratedDate: Long, doulistUpdatedDate: Long, createdTime: Timestamp,
                    updatedTime: Timestamp)
-
 
 case class DoulistMovieDetail(id: Integer, movieid: String, doulistUrl: String, createdTime: Timestamp, updatedTime: Timestamp)
 

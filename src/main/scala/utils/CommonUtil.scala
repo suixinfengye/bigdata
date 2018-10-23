@@ -8,7 +8,6 @@ import org.apache.hadoop.hbase.mapred.TableOutputFormat
 import org.apache.hadoop.mapred.JobConf
 import org.apache.spark.sql.SparkSession
 import org.slf4j.LoggerFactory
-import sample.PhoenixTest.logger
 
 /**
   * feng
@@ -101,6 +100,14 @@ object CommonUtil {
     cc
   }
 
+  def getRedis = {
+    if (CommomConfig.isTest) {
+      RedisUtil.getLocalJedis
+    } else {
+      RedisUtil.getJedisCluster
+    }
+  }
+
   def getPhoenixurl: String = {
     // TODO
     var phoenixUrl = CommomConfig.Phoenix_URL_LOCAL
@@ -109,6 +116,38 @@ object CommonUtil {
     }
     logger.info("Phoenix_URL_LOCAL is : " + phoenixUrl)
     phoenixUrl
+  }
+
+  def getValueOrElse(num: Int): Int = {
+    if (num isNaN ) {
+      return CommomConfig.DEFAULT_INT
+    } else {
+      return num
+    }
+  }
+
+  def getValueOrElse(num: Long): Long = {
+    if (num == None) {
+      return CommomConfig.DEFAULT_LONG
+    } else {
+      return num
+    }
+  }
+
+  def getValueOrElse(num: Double): Double = {
+    if (num == None) {
+      return CommomConfig.DEFAULT_DOUBLE
+    } else {
+      return Double.NaN
+    }
+  }
+
+  def getValueOrElse(str: String): String = {
+    if (str == None) {
+      return CommomConfig.DEFAULT_STRING
+    } else {
+      return str
+    }
   }
 
   /**

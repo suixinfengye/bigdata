@@ -1,10 +1,8 @@
 package spark.dataProcess
 
-import java.sql.{Connection, PreparedStatement, SQLException, Timestamp}
-import java.util.Date
+import java.sql.{Connection, PreparedStatement, SQLException}
 
 import com.alibaba.fastjson.JSON
-import org.apache.commons.lang3.StringUtils
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.serialization.StringDeserializer
@@ -12,15 +10,11 @@ import org.apache.spark.internal.Logging
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.streaming.dstream.InputDStream
-import org.apache.spark.streaming.{Seconds, StreamingContext}
-import org.apache.spark.streaming.kafka010.ConsumerStrategies.Subscribe
 import org.apache.spark.streaming.kafka010._
-import org.apache.spark.streaming.kafka010.LocationStrategies.PreferBrokers
-import redis.clients.jedis.{Jedis, JedisCluster}
+import org.apache.spark.streaming.{Seconds, StreamingContext}
 import sample.Tdl
-import spark.dataProcess.StoreMovieEssay.regx
 import spark.dto._
-import utils._
+import utils.{CommonUtil, _}
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -46,7 +40,6 @@ object ProcessMysqlData extends Logging {
 
     //设置当前为测试环境
     CommonUtil.setTestEvn
-
 
     // config kafka
     val kafkaParams = Map[String, Object](
@@ -92,6 +85,7 @@ object ProcessMysqlData extends Logging {
   /**
     * 记录存入Phoenix
     * offset存入redis
+    *
     * @param session
     * @param stream
     */
@@ -126,11 +120,12 @@ object ProcessMysqlData extends Logging {
             }
             MysqlUtil.colseConnection(con)
         }
-        val jedis: JedisCluster = RedisUtil.getJedisCluster
-        logInfo("offsetRange:"+offsetRange)
+        //        val jedis: JedisCluster = RedisUtil.getJedisCluster
+        val jedis = CommonUtil.getRedis
+        logInfo("offsetRange:" + offsetRange)
         //偏移量存入redis
         for (or <- offsetRange) {
-          logInfo("redis info:"+groupId +":"+or.topic + "-" + or.partition+":"+ or.untilOffset.toString)
+          logInfo("redis info:" + groupId + ":" + or.topic + "-" + or.partition + ":" + or.untilOffset.toString)
           jedis.hset(groupId, or.topic + "-" + or.partition, or.untilOffset.toString)
         }
       }
@@ -172,7 +167,7 @@ object ProcessMysqlData extends Logging {
                     case "movie_base_info" => saveMovieBaseInfo(info, con)
                     case "movie_detail" => saveMovieDetail(info, con)
                     case "movie_essay" => saveMovieEssay(info, con)
-                    case _ => logInfo("---------not match-----:" + info._1 + info._2.toString())
+                    case _ => logError("---------not match-----:" + info._1 + info._2.toString())
                   }
               }
               MysqlUtil.colseConnection(con)
@@ -244,8 +239,6 @@ object ProcessMysqlData extends Logging {
     val sql = "upsert INTO doulist(id,movieid,doulist_url,doulist_name,doulist_intr,user_name,user_url," +
       "collect_num,recommend_num,movie_num,doulist_cratedDate,doulist_updatedDate,created_time)" +
       "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,CONVERT_TZ(CURRENT_DATE(), 'UTC', 'Asia/Shanghai'))"
-    //    val sql = "upsert INTO doulist(id,movieid,doulist_url,doulist_name)" +
-    //      "VALUES(?,?,?,?)"
     logInfo(sql)
     logInfo(list(0).toString)
     logInfo("insert doulist size:" + list.size)
@@ -303,10 +296,6 @@ object ProcessMysqlData extends Logging {
     val pstmt: PreparedStatement = con.prepareStatement(sql)
     list.foreach {
       r =>
-        var likeNum = r.likeNum
-        if (r.likeNum == null) {
-          likeNum = -1
-        }
         pstmt.setInt(1, r.id)
         pstmt.setString(2, r.movieid)
         pstmt.setString(3, r.filmCriticsUrl)
@@ -317,9 +306,9 @@ object ProcessMysqlData extends Logging {
         pstmt.setDate(8, MyDateUtil.getDate(r.commentTime.toInt))
         pstmt.setInt(9, r.uselessNum)
         pstmt.setInt(10, r.usefulNum)
-        pstmt.setInt(11, likeNum)
+        pstmt.setInt(11, CommonUtil.getValueOrElse(r.likeNum))
         pstmt.setInt(12, r.recommendNum)
-        pstmt.setString(13, r.review + "")
+        pstmt.setString(13, r.review)
         pstmt.addBatch()
     }
     executeAndCommit(pstmt, con)

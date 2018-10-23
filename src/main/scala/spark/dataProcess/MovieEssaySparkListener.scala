@@ -1,16 +1,15 @@
 package spark.dataProcess
 
 
-import org.apache.spark.scheduler.{SparkListener, SparkListenerApplicationEnd, SparkListenerJobEnd}
-import org.apache.spark.sql.SparkSession
-import org.apache.spark.util.LongAccumulator
-import org.apache.phoenix.spark._
-import spark.dto.SteamingRecord
-import utils.{MyConstant, MyDateUtil, MysqlUtil}
 import java.sql.{PreparedStatement, SQLException, Timestamp}
 import java.util.Date
 
+import org.apache.spark.scheduler.{SparkListener, SparkListenerApplicationEnd}
+import org.apache.spark.sql.SparkSession
+import org.apache.spark.util.LongAccumulator
 import org.slf4j.LoggerFactory
+import spark.dto.SteamingRecord
+import utils.{MyConstant, MyDateUtil, MysqlUtil}
 
 
 /**
@@ -25,12 +24,12 @@ class MovieEssaySparkListener(spark: SparkSession, acc: LongAccumulator, startTi
   /**
     * 在streaming application关闭时,插入保存记录
     * 统计在整个streaming 运行期间读取的记录数
+    * 使用次数太少,不用数据库连接池
     *
     * @param applicationEnd
     */
   override def onApplicationEnd(applicationEnd: SparkListenerApplicationEnd): Unit = {
     logger.info("---------------onApplicationEnd-----------------")
-
     val date = new Date
     val dateStr = MyDateUtil.dateFormat(date)
     val curretTime = new Timestamp(date.getTime)

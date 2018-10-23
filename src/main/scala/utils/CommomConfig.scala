@@ -38,5 +38,12 @@ object CommomConfig {
 
   val Phoenix_DRIVER = "org.apache.phoenix.jdbc.PhoenixDriver"
 
+  val DEFAULT_INT = Integer.MIN_VALUE;
+
+  val DEFAULT_LONG = Long.MinValue
+
+  val DEFAULT_DOUBLE = Double.NaN
+
+  val DEFAULT_STRING = ""
 
 }
