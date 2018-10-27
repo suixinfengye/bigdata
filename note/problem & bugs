@@ -66,9 +66,5 @@ org.apache.phoenix.jdbc.PhoenixDriver.getConnectionQueryServices(PhoenixDriver.j
 org.apache.phoenix.jdbc.PhoenixEmbeddedDriver.createConnection(PhoenixEmbeddedDriver.java:150)
 ```
 
-to read
-https://blog.csdn.net/silentwolfyh/article/details/70208954
 
-phoenix timezone
-https://issues.apache.org/jira/browse/PHOENIX-997
 

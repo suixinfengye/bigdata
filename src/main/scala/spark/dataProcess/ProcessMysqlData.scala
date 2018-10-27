@@ -3,9 +3,10 @@ package spark.dataProcess
 import java.sql.{Connection, PreparedStatement, SQLException}
 
 import com.alibaba.fastjson.JSON
+import com.fasterxml.jackson.databind.node.ObjectNode
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.common.TopicPartition
-import org.apache.kafka.common.serialization.StringDeserializer
+import org.apache.kafka.connect.json.JsonDeserializer
 import org.apache.spark.internal.Logging
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
@@ -18,7 +19,7 @@ import utils.{CommonUtil, _}
 
 import scala.collection.mutable.ArrayBuffer
 
-/** https://blog.csdn.net/xianpanjia4616/article/details/80738961
+/**
   * feng
   * 18-10-9
   */
@@ -33,7 +34,7 @@ object ProcessMysqlData extends Logging {
       .appName("ProcessMysqlData")
       .config("spark.streaming.stopGracefullyOnShutdown", "true")
       .config("spark.streaming.backpressure.enabled", "true")
-      .config("spark.streaming.blockInterval", "2s  ")
+      .config("spark.streaming.blockInterval", "2s")
       .config("spark.defalut.parallelism", "6")
       .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
       .getOrCreate()
@@ -44,12 +45,11 @@ object ProcessMysqlData extends Logging {
     // config kafka
     val kafkaParams = Map[String, Object](
       "bootstrap.servers" -> CommonUtil.getKafkaServers,
-      "key.deserializer" -> classOf[StringDeserializer],
-      "value.deserializer" -> classOf[StringDeserializer],
+      "key.deserializer" -> classOf[JsonDeserializer],
+      "value.deserializer" -> classOf[JsonDeserializer],
       "group.id" -> groupId,
       "auto.offset.reset" -> "latest",
       "enable.auto.commit" -> (false: java.lang.Boolean)
-      //        "serializer.encoding"-> "UTF-8"
     )
     //获取offset
     var formdbOffset: Map[TopicPartition, Long] = JedisOffset(groupId)
@@ -60,17 +60,17 @@ object ProcessMysqlData extends Logging {
     ssc.checkpoint(CommonUtil.getCheckpointDir)
 
     //拉取kafka数据
-    val stream: InputDStream[ConsumerRecord[String, String]] = if (formdbOffset.size == 0) {
-      KafkaUtils.createDirectStream[String, String](
+    val stream: InputDStream[ConsumerRecord[String, ObjectNode]] = if (formdbOffset.size == 0) {
+      KafkaUtils.createDirectStream[String, ObjectNode](
         ssc,
         LocationStrategies.PreferConsistent,
-        ConsumerStrategies.Subscribe[String, String](topics, kafkaParams)
+        ConsumerStrategies.Subscribe[String, ObjectNode](topics, kafkaParams)
       )
     } else {
       KafkaUtils.createDirectStream(
         ssc,
         LocationStrategies.PreferConsistent,
-        ConsumerStrategies.Assign[String, String](formdbOffset.keys, kafkaParams, formdbOffset)
+        ConsumerStrategies.Assign[String, ObjectNode](formdbOffset.keys, kafkaParams, formdbOffset)
 
       )
     }
@@ -90,14 +90,13 @@ object ProcessMysqlData extends Logging {
     * @param stream
     */
 
-  def processDataWithRedis(session: SparkSession, stream: InputDStream[ConsumerRecord[String, String]]) = {
+  def processDataWithRedis(session: SparkSession, stream: InputDStream[ConsumerRecord[String, ObjectNode]]) = {
     stream.foreachRDD { rdd =>
       if (!rdd.isEmpty()) {
         val offsetRange = rdd.asInstanceOf[HasOffsetRanges].offsetRanges
-
         val tableValue = rdd.filter(r => r.value != null)
           .map(record => convertTableJsonStr(record.value)).reduceByKey(_ ++ _)
-        // 按partition遍历
+        //         按partition遍历
         tableValue.foreachPartition {
           part =>
             //get Connection in each partition
@@ -140,11 +139,9 @@ object ProcessMysqlData extends Logging {
     * @param spark
     * @param stream
     */
-  def processData(spark: SparkSession, stream: InputDStream[ConsumerRecord[String, String]]): Unit = {
+  def processData(spark: SparkSession, stream: InputDStream[ConsumerRecord[String, ObjectNode]]): Unit = {
     //按表名分组(tableame,Array(tableinfo))
-    val batchTableRecordDS = stream.filter(r => r.value != null).map(record => convertTableJsonStr(record.value))
-      .reduceByKey(_ ++ _)
-
+    val batchTableRecordDS = stream.filter(r => r.value != null).map(record => convertTableJsonStr(record.value)).reduceByKey(_ ++ _)
     batchTableRecordDS.foreachRDD {
       rdd: RDD[(String, ArrayBuffer[String])] =>
         if (!rdd.isEmpty()) {
@@ -223,9 +220,6 @@ object ProcessMysqlData extends Logging {
   }
 
   /**
-    * TODO
-    * 1. kafka中文乱码
-    * 2. 找出是哪一段导致不能存入数据库
     *
     * @param info
     * @param con
@@ -233,7 +227,6 @@ object ProcessMysqlData extends Logging {
   def saveDoulist(info: (String, ArrayBuffer[String]), con: Connection): Unit = {
     val s = info._2(0).toString
     logInfo("json:" + s)
-    logInfo("json:" + new String(s.getBytes, "UTF-8"))
 
     val list: ArrayBuffer[Doulist] = info._2.map(t => JSON.parseObject(t, classOf[Doulist]))
     val sql = "upsert INTO doulist(id,movieid,doulist_url,doulist_name,doulist_intr,user_name,user_url," +
@@ -245,11 +238,6 @@ object ProcessMysqlData extends Logging {
     val pstmt: PreparedStatement = con.prepareStatement(sql)
     list.foreach {
       r =>
-        logInfo("r.doulistName:" + r.doulistName)
-        logInfo("doulistName UTF-8:" + new String(r.doulistName.getBytes, "UTF-8"))
-        logInfo("doulistName UTF-82:" + new String(r.doulistName.getBytes("latin1"), "UTF-8"))
-        logInfo("doulistName Unicode:" + new String(r.doulistName.getBytes, "Unicode"))
-        logInfo("doulistName latin1:" + new String(r.doulistName.getBytes("latin1"), "GBK"))
         pstmt.setInt(1, r.id)
         pstmt.setString(2, r.movieid)
         pstmt.setString(3, r.doulistUrl)
@@ -288,8 +276,8 @@ object ProcessMysqlData extends Logging {
   def saveFilmCritics(info: (String, ArrayBuffer[String]), con: Connection): Unit = {
     val list: ArrayBuffer[FilmCritics] = info._2.map(t => JSON.parseObject(t, classOf[FilmCritics]))
     val sql = "upsert INTO film_critics(id,movieid,film_critics_url,title,user_name,user_url," +
-      "comment_rate,comment_time,useless_num,useful_num,like_num,recommend_num,review,created_time)" +
-      "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,CONVERT_TZ(CURRENT_DATE(), 'UTC', 'Asia/Shanghai'))"
+      "comment_rate,comment_time,useless_num,useful_num,recommend_num,review,created_time)" +
+      "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,CONVERT_TZ(CURRENT_DATE(), 'UTC', 'Asia/Shanghai'))"
     logInfo(sql)
     logInfo(list(0).toString)
     logInfo("insert FilmCritics size:" + list.size)
@@ -302,13 +290,13 @@ object ProcessMysqlData extends Logging {
         pstmt.setString(4, r.title)
         pstmt.setString(5, r.userName)
         pstmt.setString(6, r.userUrl)
-        pstmt.setBigDecimal(7, new java.math.BigDecimal(1.2))
+        pstmt.setDouble(7, r.commentRate)
         pstmt.setDate(8, MyDateUtil.getDate(r.commentTime.toInt))
         pstmt.setInt(9, r.uselessNum)
         pstmt.setInt(10, r.usefulNum)
-        pstmt.setInt(11, CommonUtil.getValueOrElse(r.likeNum))
-        pstmt.setInt(12, r.recommendNum)
-        pstmt.setString(13, r.review)
+        //        pstmt.setInt(11, CommonUtil.getValueOrElse(r.likeNum))
+        pstmt.setInt(11, r.recommendNum)
+        pstmt.setString(12, r.review)
         pstmt.addBatch()
     }
     executeAndCommit(pstmt, con)
@@ -371,7 +359,7 @@ object ProcessMysqlData extends Logging {
         pstmt.setString(13, r.alsoKnown_as)
         pstmt.setString(14, r.runtime)
         pstmt.setString(15, r.IMDbUrl)
-        pstmt.setBigDecimal(16, new java.math.BigDecimal(1.2)) //r.doubanRate
+        pstmt.setDouble(16, r.doubanRate)
         pstmt.setInt(17, r.rateNum)
         pstmt.setString(18, r.star5)
         pstmt.setString(19, r.star4)
@@ -445,8 +433,8 @@ object ProcessMysqlData extends Logging {
     }
   }
 
-  def convertTableJsonStr(jsonstr: String): (String, ArrayBuffer[String]) = {
-    val jsonObject = JSON.parseObject(jsonstr);
+  def convertTableJsonStr(json: ObjectNode): (String, ArrayBuffer[String]) = {
+    val jsonObject = JSON.parseObject(json.toString);
     val data = jsonObject.getString("payload");
     val schema = JSON.parseObject(jsonObject.getString("schema"));
     val topicName = schema.getString("name").split("\\.")

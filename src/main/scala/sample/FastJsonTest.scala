@@ -10,41 +10,57 @@ object FastJsonTest {
       "\"optional\":true,\"field\":\"author\"}],\"optional\":true,\"name\":\"mysqlfullfillment.test.tbl.Value\"}," +
       "\"payload\":{\"id\":null,\"title\":\"tt20\",\"author\":null}}"
 
-//    val jsonObject = JSON.parseObject(jsonstr);
-//    val data = jsonObject.getString("payload");
-//    val schema = JSON.parseObject(jsonObject.getString("schema"));
-//    val topicName = schema.getString("name").split("\\.")
-//    val t = topicName(topicName.size - 2)
-//    println(topicName.toString)
-//    println(t)
-//    println(data)
-//    println(JSON.parseObject(data, classOf[Tdl]))
+    //    val jsonObject = JSON.parseObject(jsonstr);
+    //    val data = jsonObject.getString("payload");
+    //    val schema = JSON.parseObject(jsonObject.getString("schema"));
+    //    val topicName = schema.getString("name").split("\\.")
+    //    val t = topicName(topicName.size - 2)
+    //    println(topicName.toString)
+    //    println(t)
+    //    println(data)
+    //    println(JSON.parseObject(data, classOf[Tdl]))
 
     val aa = "{\n\t\"id\":null,\n\t\"title\": \"title\",\n\t\"author_name\": \"authorName541\"\n}"
-//    val jsonObject = JSON.parseObject(aa);
-    val t = JSON.parseObject(aa,classOf[Td2])
+    //    val jsonObject = JSON.parseObject(aa);
+    val t = JSON.parseObject(aa, classOf[Td2])
 
     print(t)
-    val a:Option[Integer] = t.id
-//    println("a:"+a.toString)
-    println("aa"+a.isDefined)
-//    println("aa"+getValueOrElse(t.id))
-    print(t.haha)
-  }
-  def getValueOrElse(num:Option[Integer]):Integer= {
-//    if (num == null ) {
-//      println("ulll")
-//    } else if (num == None){
-//      println("None")
-//
-//    }else{
-//      println("what")
+//    val a: Option[Integer] = t.id
+    //    println("a:"+a.toString)
+//    println("aa" + a.isDefined)
+//    val a: Integer = t.id match {
+//      case Some(v) => v.intValue()
+//      case _ => -1
 //    }
+//    println("ddd" + a)
+//    println("aa" + getValueOrElse(t.id))
+    val aaa = t.haha
+
+    get(aaa)
+  }
+  def get(m:Integer): Unit ={
+    println("dsfd:"+m)
+  }
+
+  def getValueOrElse(num: Option[Integer]): Integer = {
+    val a: Integer = num match {
+      case Some(v) => v.intValue()
+      case _ => -1
+    }
+    println("ddd" + a)
+    //    if (num == null ) {
+    //      println("ulll")
+    //    } else if (num == None){
+    //      println("None")
+    //
+    //    }else{
+    //      println("what")
+    //    }
     return num.getOrElse(-1)
   }
 }
 
 //case class Tdl(id: Integer,title: String,atableNameuthor: String,op:String,tsMs:Long,alsoLike9Url:String)
-case class Tdl(id: Integer, title: String, author: String)
+case class Tdl(id: Integer=1, title: String, author: String)
 
-case class Td2(id: Option[Integer], title: String, authorName: String,haha:Int)
+case class Td2(id: Option[Integer], title: String, authorName: String, haha: Int)

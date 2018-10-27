@@ -1,6 +1,8 @@
 
 package sample
 
+import com.alibaba.fastjson.JSON
+import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.spark.internal.Logging
 import org.apache.spark.sql.SparkSession
@@ -8,6 +10,10 @@ import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.apache.spark.streaming.kafka010._
 import org.apache.spark.streaming.kafka010.LocationStrategies.PreferBrokers
 import org.apache.spark.streaming.kafka010.ConsumerStrategies.Subscribe
+import org.apache.kafka.connect.json.JsonDeserializer
+import org.apache.spark.streaming.dstream.InputDStream
+
+import scala.collection.mutable.ArrayBuffer
 
 //ps -ef | grep spark |  grep KafkaWordCount | awk '{print $2}'   | xargs kill  -SIGTERM
 
@@ -25,6 +31,7 @@ object KafkaWordCount extends Logging {
       .master("local")
       .appName("KafkaWordCount")
       .config("spark.streaming.stopGracefullyOnShutdown", "true")
+      .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
       .getOrCreate()
     simpleTestCode(spark)
   }
@@ -71,7 +78,7 @@ object KafkaWordCount extends Logging {
     val kafkaParams = Map[String, Object](
       "bootstrap.servers" -> "localhost:9092",
       "key.deserializer" -> classOf[StringDeserializer],
-      "value.deserializer" -> classOf[StringDeserializer],
+      "value.deserializer" -> classOf[JsonDeserializer],
       "group.id" -> "KafkaWordCountgroup",
       "auto.offset.reset" -> "latest",
       "enable.auto.commit" -> (true: java.lang.Boolean)
@@ -108,17 +115,28 @@ object KafkaWordCount extends Logging {
     val ssc = new StreamingContext(spark.sparkContext, Seconds(2))
 
     ssc.checkpoint("/home/feng/software/code/bigdata/spark-warehouse")
-    val stream = KafkaUtils.createDirectStream[String, String](
+    val stream: InputDStream[ConsumerRecord[String, String]] = KafkaUtils.createDirectStream[String, String](
       ssc,
       PreferBrokers,
       Subscribe[String, String](topics, kafkaParams)
-    )
+    ) //拉取kafka数据
+
 
     stream.map(mapFunc = record => (record.key, record.value)).foreachRDD(
-      r => r.collect().foreach(t => print("message:" + t)))
+      r => r.collect().foreach(t => print("message:" + convertTableJsonStr2(t._2))))
 
     ssc.start()
     ssc.awaitTermination()
+  }
+
+  def convertTableJsonStr2(jsonstr: String): (String, ArrayBuffer[String]) = {
+    val jsonObject = JSON.parseObject(jsonstr);
+    val data = jsonObject.getString("payload");
+    val schema = JSON.parseObject(jsonObject.getString("schema"));
+    val topicName = schema.getString("name").split("\\.")
+    val tableName = topicName(topicName.size - 2)
+    println(tableName+"data:"+data)
+    (tableName, ArrayBuffer(data))
   }
 }
 

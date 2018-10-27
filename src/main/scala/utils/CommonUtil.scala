@@ -118,37 +118,6 @@ object CommonUtil {
     phoenixUrl
   }
 
-  def getValueOrElse(num: Int): Int = {
-    if (num isNaN ) {
-      return CommomConfig.DEFAULT_INT
-    } else {
-      return num
-    }
-  }
-
-  def getValueOrElse(num: Long): Long = {
-    if (num == None) {
-      return CommomConfig.DEFAULT_LONG
-    } else {
-      return num
-    }
-  }
-
-  def getValueOrElse(num: Double): Double = {
-    if (num == None) {
-      return CommomConfig.DEFAULT_DOUBLE
-    } else {
-      return Double.NaN
-    }
-  }
-
-  def getValueOrElse(str: String): String = {
-    if (str == None) {
-      return CommomConfig.DEFAULT_STRING
-    } else {
-      return str
-    }
-  }
 
   /**
     * 设置当前为测试环境
