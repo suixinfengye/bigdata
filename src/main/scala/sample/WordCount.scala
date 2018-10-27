@@ -11,14 +11,13 @@ object WordCount {
       .master("local")
       .appName("WordCount")
       .getOrCreate()
-    import spark.implicits._
 //    val file = spark.sparkContext.textFile("hdfs://localhost:9000/test/common")
 //    file.flatMap(_.split(" ")).map((_,1)).reduceByKey(_+_).collect().foreach(println(_))
 
 
 
     spark.sparkContext.makeRDD(List(1,2,3,4,5,6)).collect().foreach(println(_))
-    logger.info("-------------------sdf")
+    logger.error("-------------------sdfhdhhd")
     spark.stop()
   }
 }
