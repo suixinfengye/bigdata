@@ -93,3 +93,7 @@ spark3:         at org.apache.hadoop.hdfs.tools.DFSZKFailoverController.main(DFS
 ```
 
 streaming 将kafka记录保存在redis中吧
+
+对比:
+高可用方案:failover replica方式,整块/细粒度
+leader选举 协调 读写请求转发/副本读写
