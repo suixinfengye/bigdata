@@ -34,8 +34,7 @@ object CommonUtil {
 
   def getHbaseConfig: Configuration = {
     var zookeeperQuorum: String = CommomConfig.HBASE_ZOOKEEPER_QUORUM
-    // TODO
-    var outputdir = CommomConfig.HBASE_OUTPUTDIR_TEST
+    var outputdir = CommomConfig.HBASE_OUTPUTDIR
     if (CommomConfig.isTest) {
       zookeeperQuorum = CommomConfig.HBASE_ZOOKEEPER_QUORUM_TEST
       outputdir = CommomConfig.HBASE_OUTPUTDIR_TEST
@@ -77,8 +76,7 @@ object CommonUtil {
   }
 
   def getMysqlurl: String = {
-    // TODO
-    var mysqlUrl = CommomConfig.MYSQL_URL_TEST
+    var mysqlUrl = CommomConfig.MYSQL_URL
     if (CommomConfig.isTest) {
       mysqlUrl = CommomConfig.MYSQL_URL_TEST
     }
@@ -109,12 +107,11 @@ object CommonUtil {
   }
 
   def getPhoenixurl: String = {
-    // TODO
-    var phoenixUrl = CommomConfig.Phoenix_URL_LOCAL
+    var phoenixUrl = CommomConfig.Phoenix_URL
     if (CommomConfig.isTest) {
       phoenixUrl = CommomConfig.Phoenix_URL_LOCAL
     }
-    logger.info("Phoenix_URL_LOCAL is : " + phoenixUrl)
+    logger.info("Phoenix_URL is : " + phoenixUrl)
     phoenixUrl
   }
 

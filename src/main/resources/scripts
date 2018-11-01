@@ -83,3 +83,7 @@ https://blog.csdn.net/huwh_/article/details/79242625
 
 #指定 redis 只接收来自于该 IP 地址的请求，如果不进行设置，那么将处理所有请求
 bind 127.0.0.1
+
+
+#spark
+start-shuffle-service.sh #动态资源分配用到外部服务进程

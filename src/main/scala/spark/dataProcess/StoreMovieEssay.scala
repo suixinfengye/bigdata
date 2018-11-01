@@ -2,58 +2,66 @@ package spark.dataProcess
 
 
 import java.sql.Timestamp
+import java.util.Date
 
+import org.apache.commons.lang.StringUtils
 import org.apache.hadoop.hbase.client.Put
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable
 import org.apache.hadoop.hbase.util.Bytes
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.common.serialization.StringDeserializer
+import org.apache.phoenix.spark._
 import org.apache.spark.internal.Logging
+import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.streaming.dstream.{DStream, InputDStream}
-import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.apache.spark.streaming.kafka010.ConsumerStrategies.Subscribe
 import org.apache.spark.streaming.kafka010.{KafkaUtils, LocationStrategies}
-import org.apache.spark.streaming.kafka010.LocationStrategies.PreferBrokers
+import org.apache.spark.streaming.{Seconds, StreamingContext}
+import org.apache.spark.util.LongAccumulator
 import spark.dto.{Review, SteamingRecord}
 import utils.{CommomConfig, CommonUtil, MyConstant, MyDateUtil}
-import java.util.Date
-
-import org.apache.commons.collections.CollectionUtils
-import org.apache.commons.lang.StringUtils
-import org.apache.phoenix.spark._
-import org.apache.spark.rdd.RDD
-import org.apache.spark.util.LongAccumulator
 
 import scala.collection.mutable.ListBuffer
+
 
 /**
   * 整合flume kafka hbase spark-streaming 将文章内容解析后储存于hbase
   * hbase key为 reverse(movieid)-reviewid
   *
-  * ./kafka-topics.sh --create --zookeeper 192.168.0.101:2181,192.168.0.107:2181,192.168.0.108:2181 --replication-factor 2 --partitions 2 --topic movie-essay-topic
+  * ./kafka-topics.sh --create --zookeeper 192.168.0.101:2181,192.168.0.107:2181,192.168.0.108:2181
+  * --replication-factor 2 --partitions 6 --topic movie-essay-topic
   * bin/flume-ng agent -n logser -c conf -f conf/flume_test.conf
+  *
+  ./bin/spark-submit \
+  --class spark.dataProcess.StoreMovieEssay \
+  --master spark://feng:7077 \
+  --executor-memory 1G \
+  --num-executors 3 \
+  --total-executor-cores 3 \
+  /home/feng/software/code/bigdata/out/artifacts/bigdata/bigdata.jar
   * feng
   * 18-9-24
   */
 object StoreMovieEssay extends Logging {
 
-  val batchInterval: Int = 2
+  val batchInterval: Int = 6
 
   def main(args: Array[String]): Unit = {
     val spark = SparkSession
       .builder()
-      .master("local")
+      //      .master("local")
       .appName("StoreMovieEssay")
       .config("spark.streaming.stopGracefullyOnShutdown", "true")
       .config("spark.streaming.backpressure.enabled", "true")
-      .config("spark.streaming.blockInterval", "2s  ")
+      .config("spark.streaming.kafka.maxRatePerPartition", 100)
+      .config("spark.streaming.blockInterval", "3s")
       .config("spark.defalut.parallelism", "6")
       .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
       .getOrCreate()
 
     //设置当前为测试环境
-    CommonUtil.setTestEvn
+    //    CommonUtil.setTestEvn
 
     // config kafka
     val kafkaParams = Map[String, Object](
@@ -96,9 +104,9 @@ object StoreMovieEssay extends Logging {
     */
   def processData(spark: SparkSession, stream: InputDStream[ConsumerRecord[String, String]], acc: LongAccumulator): Unit = {
     val batchRecordDS = stream.map(mapFunc = record => {
-      if (StringUtils.isNotEmpty(record.value())){
+      if (StringUtils.isNotEmpty(record.value())) {
         regx(record.value)
-      }else{
+      } else {
         List.empty
       }
     }).filter(list => list.nonEmpty).cache()
@@ -137,8 +145,8 @@ object StoreMovieEssay extends Logging {
     */
   def streamingOpr(batchRecordDS: DStream[List[Review]], spark: SparkSession): Unit = {
     import spark.implicits._
-    val movieWindowRecords: DStream[(String, List[Review])] = batchRecordDS.window(Seconds(batchInterval * 2), Seconds
-    (batchInterval * 2)).map {
+    val movieWindowRecords: DStream[(String, List[Review])] = batchRecordDS.window(Seconds(batchInterval * 3), Seconds
+    (batchInterval * 3)).map {
       reviews: List[Review] =>
         val key = reviews(0).movieid
         (key, reviews)
@@ -154,7 +162,7 @@ object StoreMovieEssay extends Logging {
         //主键设置为 movieid+timestamp, 每一个批次处理时,都是按movieid分组的,一个批次同一个movieid只会有一个
         iter.map { t =>
           val s = SteamingRecord(t._1 + dateStr, null, curretTime, t._2.size, recordType, t._1, curretTime, null)
-          logInfo("-----+++:"+s.toString)
+          logInfo("-----+++:" + s.toString)
           s
         }
     }
@@ -184,7 +192,7 @@ object StoreMovieEssay extends Logging {
     val contentPattern = ":::"
     val reviewList: ListBuffer[Review] = ListBuffer[Review]()
     if (list == null) {
-      return  reviewList.toList
+      return reviewList.toList
     }
     list.foreach { item =>
       if (item.length > 90) { //过滤空对象
@@ -210,13 +218,14 @@ object StoreMovieEssay extends Logging {
     */
   def converToPut(c: Review) = {
     // rowkey设计 均衡分布记录
-    val put = new Put(Bytes.toBytes(c.movieid.reverse + "-" + c.reviewid))
+    val put = new Put(Bytes.toBytes(c.movieid + "-" + c.reviewid))
     put.addColumn(Bytes.toBytes("cf"), Bytes.toBytes("cn"), Bytes.toBytes(c.content))
     (new ImmutableBytesWritable, put)
   }
 
+  //create 'review', 'cf'
   def getTableName: String = {
-    var tableName = "test"
+    var tableName = "review"
     if (CommomConfig.isTest) {
       tableName = "test"
     }
