@@ -1,3 +1,12 @@
+# jvm
+#visaulVm
+cd /usr/local/userlib/conf/jvm
+jstatd -J-Djava.security.policy=/usr/local/userlib/conf/jvm/jstatd.all.policy -J-Djava.rmi.server.hostname=192.168.0.101  -J-Djava.rmi.server.logCalls=true
+
+add jms
+-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=5446 -Dcom.sun.management.jmxremote
+.authenticate=false -Dcom.sun.management.jmxremote.ssl=false
+
 # python
 source /home/feng/software/python/venv/bin/activate
 cd /media/feng/资源/bigdata/doubanSpider/doubanSpider/spiders

@@ -70,13 +70,13 @@ object ProcessMysqlData extends Logging {
     val stream: InputDStream[ConsumerRecord[String, ObjectNode]] = if (formdbOffset.size == 0) {
       KafkaUtils.createDirectStream[String, ObjectNode](
         ssc,
-        LocationStrategies.PreferConsistent,
+        LocationStrategies.PreferBrokers,
         ConsumerStrategies.Subscribe[String, ObjectNode](topics, kafkaParams)
       )
     } else {
       KafkaUtils.createDirectStream(
         ssc,
-        LocationStrategies.PreferConsistent,
+        LocationStrategies.PreferBrokers,
         ConsumerStrategies.Assign[String, ObjectNode](formdbOffset.keys, kafkaParams, formdbOffset)
 
       )

@@ -54,7 +54,7 @@ object StoreMovieEssay extends Logging {
       .appName("StoreMovieEssay")
       .config("spark.streaming.stopGracefullyOnShutdown", "true")
       .config("spark.streaming.backpressure.enabled", "true")
-      .config("spark.streaming.kafka.maxRatePerPartition", 100)
+      .config("spark.streaming.kafka.maxRatePerPartition", 1000)
       .config("spark.streaming.blockInterval", "3s")
       .config("spark.defalut.parallelism", "6")
       .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
@@ -63,7 +63,11 @@ object StoreMovieEssay extends Logging {
     //设置当前为测试环境
     //    CommonUtil.setTestEvn
 
-    // config kafka
+    /**
+      * If your Spark batch duration is larger than the default Kafka heartbeat session timeout (30 seconds),
+      * increase heartbeat.interval.ms and session.timeout.ms appropriately. For batches larger than 5 minutes,
+      * this will require changing group.max.session.timeout.ms on the broker.
+      */
     val kafkaParams = Map[String, Object](
       "bootstrap.servers" -> CommonUtil.getKafkaServers,
       "key.deserializer" -> classOf[StringDeserializer],
@@ -76,10 +80,24 @@ object StoreMovieEssay extends Logging {
 
     //config spark Streaming
     val ssc = new StreamingContext(spark.sparkContext, Seconds(batchInterval))
+
+    /**
+      * If you enable Spark checkpointing, offsets will be stored in the checkpoint.
+      * 缺点:1.output operation must be idempotent, since you will get repeated outputs;
+      * 2.transactions are not an option.
+      * 3.you cannot recover from a checkpoint if your application code has changed.
+      */
     ssc.checkpoint(CommonUtil.getCheckpointDir)
     val stream = KafkaUtils.createDirectStream[String, String](
       ssc,
-      LocationStrategies.PreferConsistent,
+
+      /**
+        * PreferConsistent:distribute partitions evenly across available executors
+        * PreferBrokers:executors are on the same hosts as Kafka brokers,
+        *   which will prefer to schedule partitions on the Kafka leader for that partition
+        * PreferFixed:数据有倾斜时,will specify an explicit mapping of partitions to hosts
+        */
+      LocationStrategies.PreferBrokers,
       Subscribe[String, String](topics, kafkaParams)
     )
 
