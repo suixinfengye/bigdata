@@ -55,6 +55,13 @@
 # - SPARK_WORKER_OPTS, to set config properties only for the worker (e.g. "-Dx=y")
 # - SPARK_DAEMON_MEMORY, to allocate to the master, worker and history server themselves (default: 1g).
 # - SPARK_HISTORY_OPTS, to set config properties only for the history server (e.g. "-Dx=y")
+SPARK_MASTER_OPTS="-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=9448 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false"
+
+SPARK_WORKER_OPTS="-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=9450 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false"
+
+SPARK_HISTORY_OPTS="-Dspark.history.fs.logDirectory=hdfs://spark1:9000/spark-logs -Dspark.history.fs.cleaner.enabled=true -Dspark.history.fs.cleaner.interval=2d -Dspark.history.fs.cleaner.maxAge=8d -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=9452 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false"
+
+
 # - SPARK_SHUFFLE_OPTS, to set config properties only for the external shuffle service (e.g. "-Dx=y")
 # - SPARK_DAEMON_JAVA_OPTS, to set config properties for all daemons (e.g. "-Dx=y")
 # - SPARK_DAEMON_CLASSPATH, to set the classpath for all daemons
@@ -71,6 +78,7 @@
 # You might get better performance to enable these options if using native BLAS (see SPARK-21305).
 # - MKL_NUM_THREADS=1        Disable multi-threading of Intel MKL
 # - OPENBLAS_NUM_THREADS=1   Disable multi-threading of OpenBLAS
+
 
 export JAVA_HOME=/usr/java/latest
 export SCALA_HOME=/usr/local/userlib/scala

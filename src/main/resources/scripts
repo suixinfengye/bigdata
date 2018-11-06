@@ -2,10 +2,18 @@
 #visaulVm
 cd /usr/local/userlib/conf/jvm
 jstatd -J-Djava.security.policy=/usr/local/userlib/conf/jvm/jstatd.all.policy -J-Djava.rmi.server.hostname=192.168.0.101  -J-Djava.rmi.server.logCalls=true
+jstatd -J-Djava.security.policy=/usr/local/userlib/conf/jvm/jstatd.all.policy -J-Djava.rmi.server.hostname=192.168.0.107
+ -J-Djava.rmi.server.logCalls=true
+jstatd -J-Djava.security.policy=/usr/local/userlib/conf/jvm/jstatd.all.policy -J-Djava.rmi.server.hostname=192.168.0.108
+  -J-Djava.rmi.server.logCalls=true
 
 add jms
--Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=5446 -Dcom.sun.management.jmxremote
-.authenticate=false -Dcom.sun.management.jmxremote.ssl=false
+-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=9450 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false
+
+
+SPARK_MASTER_OPTS="-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=9448 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false"
+SPARK_WORKER_OPTS="-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=9450 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false"
+SPARK_HISTORY_OPTS="-Dspark.history.fs.logDirectory=hdfs://spark1:9000/spark-logs -Dspark.history.fs.cleaner.enabled=true -Dspark.history.fs.cleaner.interval=2d -Dspark.history.fs.cleaner.maxAge=8d -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=9452 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false"
 
 # python
 source /home/feng/software/python/venv/bin/activate
