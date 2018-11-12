@@ -115,6 +115,14 @@ object CommonUtil {
     phoenixUrl
   }
 
+//  def getPhoenixZKurl: String = {
+//    var phoenixUrl = CommomConfig.Phoenix_ZK_URL
+//    if (CommomConfig.isTest) {
+//      phoenixUrl = CommomConfig.ZK_URL_TEST
+//    }
+//    logger.info("Phoenix_URL is : " + phoenixUrl)
+//    phoenixUrl
+//  }
 
   /**
     * 设置当前为测试环境

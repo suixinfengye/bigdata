@@ -24,22 +24,22 @@ import utils.{CommomConfig, CommonUtil, MyConstant, MyDateUtil}
 
 import scala.collection.mutable.ListBuffer
 
-
 /**
   * 整合flume kafka hbase spark-streaming 将文章内容解析后储存于hbase
   * hbase key为 reverse(movieid)-reviewid
   *
   * ./kafka-topics.sh --create --zookeeper 192.168.0.101:2181,192.168.0.107:2181,192.168.0.108:2181
   * --replication-factor 2 --partitions 6 --topic movie-essay-topic
-  * bin/flume-ng agent -n logser -c conf -f conf/flume_test.conf
   *
-  ./bin/spark-submit \
-  --class spark.dataProcess.StoreMovieEssay \
-  --master spark://feng:7077 \
-  --executor-memory 1G \
-  --num-executors 3 \
-  --total-executor-cores 3 \
-  /home/feng/software/code/bigdata/out/artifacts/bigdata/bigdata.jar
+  * bin/flume-ng agent -n logser -c conf -f conf/flume_movie_eassy.conf
+  *
+  * ./bin/spark-submit \
+  * --class spark.dataProcess.StoreMovieEssay \
+  * --master spark://spark1:7077 \
+  * --executor-memory 1G \
+  * --num-executors 3 \
+  * --total-executor-cores 3 \
+  * /usr/local/userlib/jars/bigdata.jar
   * feng
   * 18-9-24
   */
@@ -48,13 +48,17 @@ object StoreMovieEssay extends Logging {
   val batchInterval: Int = 6
 
   def main(args: Array[String]): Unit = {
+    /**
+      * spark.streaming.backpressure.enabled:Maximum rate (number of records per second) at which data will be read from each Kafka partition
+      * use spark.streaming.kafka.maxRatePerPartition to control the initial rate before the backpressure feedback loop takes effect
+      */
     val spark = SparkSession
       .builder()
       //      .master("local")
       .appName("StoreMovieEssay")
       .config("spark.streaming.stopGracefullyOnShutdown", "true")
       .config("spark.streaming.backpressure.enabled", "true")
-      .config("spark.streaming.kafka.maxRatePerPartition", 1000)
+      .config("spark.streaming.kafka.maxRatePerPartition", 100)
       .config("spark.streaming.blockInterval", "3s")
       .config("spark.defalut.parallelism", "6")
       .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
@@ -94,7 +98,7 @@ object StoreMovieEssay extends Logging {
       /**
         * PreferConsistent:distribute partitions evenly across available executors
         * PreferBrokers:executors are on the same hosts as Kafka brokers,
-        *   which will prefer to schedule partitions on the Kafka leader for that partition
+        * which will prefer to schedule partitions on the Kafka leader for that partition
         * PreferFixed:数据有倾斜时,will specify an explicit mapping of partitions to hosts
         */
       LocationStrategies.PreferBrokers,
@@ -180,18 +184,21 @@ object StoreMovieEssay extends Logging {
         //主键设置为 movieid+timestamp, 每一个批次处理时,都是按movieid分组的,一个批次同一个movieid只会有一个
         iter.map { t =>
           val s = SteamingRecord(t._1 + dateStr, null, curretTime, t._2.size, recordType, t._1, curretTime, null)
-          logInfo("-----+++:" + s.toString)
+          logInfo("SteamingRecord:" + s.toString)
           s
         }
     }
 
-    logInfo("start to save into Phoenix")
+
     //入库
     recordAgg.foreachRDD {
       t: RDD[SteamingRecord] =>
         if (!t.isEmpty()) {
+          logInfo("start to save into Phoenix...")
           val conf = CommonUtil.getHbaseConfig
-          t.toDF().saveToPhoenix("STEAMING_RECORD", conf, Option(CommonUtil.getZkurl))
+          t.toDF().saveToPhoenix("STEAMING_RECORD", conf, Option(CommonUtil.getPhoenixurl))
+//          t.toDF().saveToPhoenix("STEAMING_RECORD", conf, Option(CommomConfig.Phoenix_ZK_URL))
+          logInfo("saved into Phoenix end")
         }
     }
   }
@@ -203,9 +210,10 @@ object StoreMovieEssay extends Logging {
     * @return
     */
   def regx(stringContent: String): List[Review] = {
+    logInfo("stringContent:"+stringContent)
     val list = stringContent.split("---==---")
     val pattern = "([0-9]{5,})".r
-    val fileNamePattern = "/bigdata/test/"
+    val fileNamePattern = getFileNamePattern
     val reviewPattern = "https://movie.douban.com/review/"
     val contentPattern = ":::"
     val reviewList: ListBuffer[Review] = ListBuffer[Review]()
@@ -213,6 +221,7 @@ object StoreMovieEssay extends Logging {
       return reviewList.toList
     }
     list.foreach { item =>
+      logInfo("--item:"+item)
       if (item.length > 90) { //过滤空对象
         val fileNameIndex: Int = item.indexOf(fileNamePattern)
         val reviewIndex: Int = item.indexOf(reviewPattern)
@@ -220,7 +229,9 @@ object StoreMovieEssay extends Logging {
         val movieid = pattern findFirstIn item.substring(fileNameIndex + 14, reviewIndex)
         val reviewid = item.substring(reviewIndex + 32, contentIndex - 1)
         val content = item.substring(contentIndex + 3).trim
-        reviewList.append(Review(movieid.get, reviewid, content))
+        val review = Review(movieid.get, reviewid, content)
+        logInfo("review info:" + review.toString)
+        reviewList.append(review)
       } else {
         logInfo("empty review:" + item)
       }
@@ -235,7 +246,7 @@ object StoreMovieEssay extends Logging {
     * @return
     */
   def converToPut(c: Review) = {
-    // rowkey设计 均衡分布记录
+    // rowkey设计 均衡分布记录getFileNamePattern
     val put = new Put(Bytes.toBytes(c.movieid + "-" + c.reviewid))
     put.addColumn(Bytes.toBytes("cf"), Bytes.toBytes("cn"), Bytes.toBytes(c.content))
     (new ImmutableBytesWritable, put)
@@ -258,5 +269,14 @@ object StoreMovieEssay extends Logging {
     }
     logInfo("topic:" + topics)
     topics
+  }
+
+  def getFileNamePattern: String = {
+    var fileNamePattern: String = "/bigdata/doubanSpider/file/reviews/"
+    if (CommomConfig.isTest) {
+      fileNamePattern = "/bigdata/test/"
+    }
+    logInfo("fileNamePattern:" + fileNamePattern)
+    fileNamePattern
   }
 }

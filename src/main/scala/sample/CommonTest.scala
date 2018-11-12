@@ -28,6 +28,10 @@ object CommonTest {
     //    testConfig
     //    testDateFormat
     getCharset
+    val list = "dfdf".split("---==---")
+    list.foreach { item =>
+      println("___")
+    }
   }
 
 

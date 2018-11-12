@@ -11,9 +11,18 @@ import org.slf4j.LoggerFactory
 import spark.dto.SteamingRecord
 import utils.{MyConstant, MyDateUtil, MysqlUtil}
 
-
 /**
   * 在streaming application关闭时,插入保存记录
+./bin/spark-submit \
+--class spark.dataProcess.StoreMovieEssay \
+--master spark://spark1:7077 \
+--executor-memory 1G \
+--num-executors 3 \
+--total-executor-cores 3 \
+--files "/usr/local/userlib/conf/log4j.properties" \
+--driver-java-options "-Dlog4j.debug=true -Dlog4j.configuration=log4j.properties" \
+--conf "spark.executor.extraJavaOptions=-Dlog4j.debug=true -Dlog4j.configuration=log4j.properties" \
+/usr/local/userlib/jars/bigdata.jar
   * feng
   * 18-10-4
   */

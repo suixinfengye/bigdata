@@ -22,7 +22,10 @@ object CommomConfig {
 
   val HBASE_OUTPUTDIR = "hdfs://spark1:9000/tmp/mapreduceOutput"
 
-  val ZK_URL = "spark1:2181,spark2:2181,spark3:2181"
+//  val ZK_URL = "spark1:2181,spark2:2181,spark3:2181"
+  val Phoenix_ZK_URL = "jdbc:phoenix:spark1:2181"
+
+  val ZK_URL = "192.168.0.101:2181,192.168.0.107:2181,192.168.0.108:2181"
 
   val ZK_URL_TEST = "192.168.0.100:2181"
 

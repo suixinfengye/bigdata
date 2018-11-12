@@ -21,8 +21,9 @@ cd /media/feng/资源/bigdata/doubanSpider/doubanSpider/spiders
 scrapy crawl doubanmovies -s JOBDIR=/media/feng/资源/bigdata/doubanSpider/file/job4
 
 # flume
-bin/flume-ng agent -n logser -c conf -f conf/flume_test.conf
+bin/flume-ng agent -n logser -c conf -f conf/flume_movie_eassy.conf
 
+50b, 100k, or 250m
 # kafka
 cd /usr/local/userlib/kafka/bin
 ./kafka-server-start.sh -daemon ../config/server.properties
@@ -31,11 +32,11 @@ cd /usr/local/userlib/kafka/bin
 ./kafka-console-producer.sh --broker-list 192.168.0.101:9092,192.168.0.107:9092,192.168.0.108:9092 --topic test1
 ./kafka-topics.sh --list --zookeeper 192.168.0.101:2181,192.168.0.107:2181,192.168.0.108:2181
 ./kafka-console-consumer.sh --zookeeper 192.168.0.101:2181,192.168.0.107:2181,192.168.0.108:2181 --topic mysqlclustertest.test.tbl --from-beginning
-
+./kafka-topics.sh -zookeeper 192.168.0.101:2181,192.168.0.107:2181,192.168.0.108:2181 --topic movie-essay-topic  --describe
 # ./kafka-topics.sh --list --zookeeper 192.168.0.100:2181
 # ./kafka-console-producer.sh --broker-list 192.168.0.100:9092 --topic mysqlfullfillment.test.doulist
 # ./kafka-console-consumer.sh --zookeeper 192.168.0.100:2181 --topic mysqlfullfillment.test.doulist
-mysqlclustertest.test.tbl
+./kafka-topics.sh --delete --zookeeper 192.168.0.101:2181,192.168.0.107:2181,192.168.0.108:2181 --topic movie-essay-topic
 
 
 # Debezium
@@ -53,8 +54,11 @@ start-hbase.sh
 ./sbin/start-history-server.sh
 $spark/start-all.sh
 
+hdfs haadmin -getServiceState nn1
+hbase-daemons.sh start regionserver
+hbase-daemon.sh stop regionserver RegionServer
 # phoenix
-$phoenix/bin/sqlline.py 192.168.0.101:2181,192.168.0.107:2181,192.168.0.108:2181
+/usr/local/userlib/phoenix-4.14.0-HBase-1.4/bin/sqlline.py spark1:2181
 
 # redis
 ps -ef | grep redis
