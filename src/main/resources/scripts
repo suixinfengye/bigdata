@@ -1,5 +1,8 @@
 # jvm
 #visaulVm
+cd /home/feng/software/
+./bin/visualvm
+
 cd /usr/local/userlib/conf/jvm
 jstatd -J-Djava.security.policy=/usr/local/userlib/conf/jvm/jstatd.all.policy -J-Djava.rmi.server.hostname=192.168.0.101  -J-Djava.rmi.server.logCalls=true
 jstatd -J-Djava.security.policy=/usr/local/userlib/conf/jvm/jstatd.all.policy -J-Djava.rmi.server.hostname=192.168.0.107
@@ -21,9 +24,10 @@ cd /media/feng/资源/bigdata/doubanSpider/doubanSpider/spiders
 scrapy crawl doubanmovies -s JOBDIR=/media/feng/资源/bigdata/doubanSpider/file/job4
 
 # flume
+cd /home/feng/software/flume/
 bin/flume-ng agent -n logser -c conf -f conf/flume_movie_eassy.conf
 
-50b, 100k, or 250m
+
 # kafka
 cd /usr/local/userlib/kafka/bin
 ./kafka-server-start.sh -daemon ../config/server.properties
