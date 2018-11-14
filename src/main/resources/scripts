@@ -1,6 +1,6 @@
 # jvm
 #visaulVm
-cd /home/feng/software/
+cd /home/feng/software/visualvm_142/
 ./bin/visualvm
 
 cd /usr/local/userlib/conf/jvm
@@ -52,6 +52,8 @@ mysql -h192.168.0.100 -p3306 -udebezium -p
 
 # bigdata
 zkServer.sh start
+zkCli.sh -server 192.168.0.101
+
 start-dfs.sh
 start-yarn.sh
 start-hbase.sh
@@ -64,6 +66,9 @@ hbase-daemon.sh stop regionserver RegionServer
 # phoenix
 /usr/local/userlib/phoenix-4.14.0-HBase-1.4/bin/sqlline.py spark1:2181
 
+
+# hbase
+truncate 'tablename'
 # redis
 ps -ef | grep redis
 netstat -tnlp | grep redis

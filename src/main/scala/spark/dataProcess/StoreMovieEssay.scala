@@ -33,13 +33,16 @@ import scala.collection.mutable.ListBuffer
   *
   * bin/flume-ng agent -n logser -c conf -f conf/flume_movie_eassy.conf
   *
-  * ./bin/spark-submit \
-  * --class spark.dataProcess.StoreMovieEssay \
-  * --master spark://spark1:7077 \
-  * --executor-memory 1G \
-  * --num-executors 3 \
-  * --total-executor-cores 3 \
-  * /usr/local/userlib/jars/bigdata.jar
+./bin/spark-submit \
+--class spark.dataProcess.StoreMovieEssay \
+--master spark://spark1:7077 \
+--executor-memory 1G \
+--num-executors 3 \
+--total-executor-cores 3 \
+--files "/usr/local/userlib/conf/log4j.properties" \
+--driver-java-options "-Dlog4j.debug=true -Dlog4j.configuration=log4j.properties" \
+--conf "spark.executor.extraJavaOptions=-Dlog4j.debug=true -Dlog4j.configuration=log4j.properties" \
+/usr/local/userlib/jars/bigdata.jar
   * feng
   * 18-9-24
   */
@@ -78,7 +81,7 @@ object StoreMovieEssay extends Logging {
       "value.deserializer" -> classOf[StringDeserializer],
       "group.id" -> "StoreMovieEssayGroup",
       "auto.offset.reset" -> "latest",
-      "enable.auto.commit" -> (true: java.lang.Boolean)
+      "enable.auto.commit" -> (false: java.lang.Boolean)
     )
     val topics = Array(getTopic)
 
@@ -221,7 +224,7 @@ object StoreMovieEssay extends Logging {
       return reviewList.toList
     }
     list.foreach { item =>
-      logInfo("--item:"+item)
+      logDebug("--item:"+item)
       if (item.length > 90) { //过滤空对象
         val fileNameIndex: Int = item.indexOf(fileNamePattern)
         val reviewIndex: Int = item.indexOf(reviewPattern)
@@ -230,7 +233,7 @@ object StoreMovieEssay extends Logging {
         val reviewid = item.substring(reviewIndex + 32, contentIndex - 1)
         val content = item.substring(contentIndex + 3).trim
         val review = Review(movieid.get, reviewid, content)
-        logInfo("review info:" + review.toString)
+        logDebug("review info:" + review.toString)
         reviewList.append(review)
       } else {
         logInfo("empty review:" + item)

@@ -33,7 +33,7 @@ object CommomConfig {
 
   val MYSQL_URL = "jdbc:mysql://192.168.0.100:3306/bigdata?useUnicode=true&characterEncoding=utf-8&useSSL=false"
 
-  val MYSQL_USER = "root"
+  val MYSQL_USER = "debezium"
 
   val MYSQL_PASSWORD = "feng"
 

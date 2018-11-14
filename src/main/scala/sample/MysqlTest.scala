@@ -1,11 +1,11 @@
 package sample
 
-import java.sql.{PreparedStatement, SQLException, Time, Timestamp}
+import java.sql.{PreparedStatement, SQLException, Timestamp}
 import java.util.Date
 
 import org.slf4j.LoggerFactory
 import spark.dto.SteamingRecord
-import utils.{CommonUtil, MyConstant, MyDateUtil, MysqlUtil}
+import utils.{MyConstant, MyDateUtil, MysqlUtil}
 
 /**
   * feng
@@ -17,7 +17,7 @@ object MysqlTest {
 
   def main(args: Array[String]): Unit = {
     //设置当前为测试环境
-    CommonUtil.setTestEvn
+//    CommonUtil.setTestEvn
     mysql
   }
 

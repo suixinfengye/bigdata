@@ -26,7 +26,7 @@ if [ "x$KAFKA_LOG4J_OPTS" = "x" ]; then
 fi
 
 if [ "x$KAFKA_HEAP_OPTS" = "x" ]; then
-    export KAFKA_HEAP_OPTS="-Xmx1G -Xms500M -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=5446 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false"
+    export KAFKA_HEAP_OPTS="-Xmx800M -Xms300M -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=5446 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false"
 fi
 
 EXTRA_ARGS=${EXTRA_ARGS-'-name kafkaServer -loggc'}
