@@ -28,8 +28,8 @@ import scala.collection.mutable.ListBuffer
   * 整合flume kafka hbase spark-streaming 将文章内容解析后储存于hbase
   * hbase key为 reverse(movieid)-reviewid
   *
-  * ./kafka-topics.sh --create --zookeeper 192.168.0.101:2181,192.168.0.107:2181,192.168.0.108:2181
-  * --replication-factor 2 --partitions 6 --topic movie-essay-topic
+./kafka-topics.sh --create --zookeeper 192.168.0.101:2181,192.168.0.107:2181,192.168.0.108:2181
+--replication-factor  2 --partitions 6 --topic movie-essay-topic
   *
   * bin/flume-ng agent -n logser -c conf -f conf/flume_movie_eassy.conf
   *
@@ -150,6 +150,7 @@ object StoreMovieEssay extends Logging {
     //save into hbase
     batchRecordDS.foreachRDD {
       r => //List[List[Review]]
+        //rdd.partitions.isEmpty)
         if (!r.isEmpty()) {
           val reviewList: List[Review] = r.filter(list => list.nonEmpty).reduce(_ ++ _)
           logInfo("save reviewList to hbase:" + reviewList.size)
@@ -190,7 +191,7 @@ object StoreMovieEssay extends Logging {
           logInfo("SteamingRecord:" + s.toString)
           s
         }
-    }
+    }.cache()
 
 
     //入库

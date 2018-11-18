@@ -12,3 +12,7 @@ decimal.handling.modestring = double # double string precise 不用BigDecimal了
 4.redis-monitor 监控安装失败
 
 5.mysql传null值后的默认值处理
+
+6.linux 读取 ntfs文件占用CPU
+    flume读取日志时,mount.ntfs 占用cpu
+    ntfs是windows文件系统格式,把文件移动到ext4格式磁盘下就可以了

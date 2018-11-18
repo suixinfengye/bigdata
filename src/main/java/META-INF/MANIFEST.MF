@@ -1,3 +1,3 @@
 Manifest-Version: 1.0
-Main-Class: spark.dataProcess.StoreMovieEssay
+Main-Class: spark.dataProcess.ProcessMysqlData
 
