@@ -22,16 +22,20 @@ object JedisOffset {
     val topicPartitionOffset: util.Map[String, String] = jedis.hgetAll(groupId)
 
     val topicPartitionOffsetlist: List[(String, String)] = topicPartitionOffset.toList
+    logger.error("topicPartitionOffsetlist:"+topicPartitionOffsetlist.size)
     for (topicPL <- topicPartitionOffsetlist) {
-      val split: Array[String] = topicPL._1.split("[-]")
-      fromdbOffset += (new TopicPartition(split(0), split(1).toInt) -> topicPL._2.toLong)
+      logger.info("topicPL.toString():"+topicPL.toString())
+      logger.info("topicPL1.toString():"+topicPL._1.toString)
+      val index = topicPL._1.lastIndexOf("-")
+      fromdbOffset += (new TopicPartition(topicPL._1.substring(0,index), topicPL._1.substring(index+1).toInt) -> topicPL
+        ._2.toLong)
     }
-    if (fromdbOffset.isEmpty) {
-      (fromdbOffset.toMap, 0)
-    } else {
-      (fromdbOffset.toMap, 1)
-    }
-    logger.info("fromdbOffset:" + groupId + " " + fromdbOffset.toString)
+//    if (fromdbOffset.isEmpty) {
+//      (fromdbOffset.toMap, 0)
+//    } else {
+//      (fromdbOffset.toMap, 1)
+//    }
+    logger.info("fromdbOffset:" + groupId + " " + fromdbOffset.toString())
     fromdbOffset
   }
 }

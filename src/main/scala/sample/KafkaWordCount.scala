@@ -12,6 +12,7 @@ import org.apache.spark.streaming.kafka010.LocationStrategies.PreferBrokers
 import org.apache.spark.streaming.kafka010.ConsumerStrategies.Subscribe
 import org.apache.kafka.connect.json.JsonDeserializer
 import org.apache.spark.streaming.dstream.InputDStream
+import utils.CommonUtil
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -33,7 +34,8 @@ object KafkaWordCount extends Logging {
       .config("spark.streaming.stopGracefullyOnShutdown", "true")
       .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
       .getOrCreate()
-    simpleTestCode(spark)
+//    simpleTestCode(spark)
+    simpleClusterTest(spark)
   }
 
   def kafkaTest(spark: SparkSession): Unit = {
@@ -137,6 +139,35 @@ object KafkaWordCount extends Logging {
     val tableName = topicName(topicName.size - 2)
     println(tableName+"data:"+data)
     (tableName, ArrayBuffer(data))
+  }
+
+  def simpleClusterTest(spark: SparkSession): Unit = {
+    val kafkaParams = Map[String, Object](
+      "bootstrap.servers" -> CommonUtil.getKafkaServers,
+      "key.deserializer" -> classOf[StringDeserializer],
+      "value.deserializer" -> classOf[JsonDeserializer],
+      "group.id" -> "KafkaWordCountgroup",
+      "auto.offset.reset" -> "latest",
+      "enable.auto.commit" -> (true: java.lang.Boolean)
+    )
+    //    val topics = Array("connect-test")
+    print("hhhhhhhhhhhhhhhhhhhh")
+    val topics = Array("mysql-clustera.test.doulist")
+    val ssc = new StreamingContext(spark.sparkContext, Seconds(2))
+    //    ssc.checkpoint("hdfs://localhost:9000//spark//checkpoint")
+
+    ssc.checkpoint("/home/feng/software/code/bigdata/spark-warehouse")
+    val stream = KafkaUtils.createDirectStream[String, String](
+      ssc,
+      PreferBrokers,
+      Subscribe[String, String](topics, kafkaParams)
+    )
+
+    stream.map(mapFunc = record => (record.key, record.value)).foreachRDD(
+      r => r.collect().foreach(t => print("---------" + t)))
+
+    ssc.start()
+    ssc.awaitTermination()
   }
 }
 

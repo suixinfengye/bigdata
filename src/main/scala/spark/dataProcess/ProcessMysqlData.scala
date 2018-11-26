@@ -20,16 +20,16 @@ import utils.{CommonUtil, _}
 import scala.collection.mutable.ArrayBuffer
 
 /**
-./bin/spark-submit \
---class spark.dataProcess.ProcessMysqlData \
---master spark://spark1:7077 \
---executor-memory 1G \
---num-executors 3 \
---total-executor-cores 3 \
---files "/usr/local/userlib/conf/log4j.properties" \
---driver-java-options "-Dlog4j.debug=true -Dlog4j.configuration=log4j.properties" \
---conf "spark.executor.extraJavaOptions=-Dlog4j.debug=true -Dlog4j.configuration=log4j.properties" \
-/usr/local/userlib/jars/bigdata.jar
+  * ./bin/spark-submit \
+  * --class spark.dataProcess.ProcessMysqlData \
+  * --master spark://spark1:7077 \
+  * --executor-memory 1G \
+  * --num-executors 3 \
+  * --total-executor-cores 3 \
+  * --files "/usr/local/userlib/conf/log4j.properties" \
+  * --driver-java-options "-Dlog4j.debug=true -Dlog4j.configuration=log4j.properties" \
+  * --conf "spark.executor.extraJavaOptions=-Dlog4j.debug=true -Dlog4j.configuration=log4j.properties" \
+  * /usr/local/userlib/jars/bigdata.jar
   * feng
   * 18-10-9
   */
@@ -40,17 +40,11 @@ object ProcessMysqlData extends Logging {
   def main(args: Array[String]): Unit = {
     val spark = SparkSession
       .builder()
-//      .master("local")
+      //            .master("local")
       .appName("ProcessMysqlData")
       .config("spark.streaming.stopGracefullyOnShutdown", "true")
       .config("spark.dynamicAllocation.enabled", "false")
       .config("spark.streaming.kafka.maxRatePerPartition", 100)
-//      .config("spark.shuffle.service.enabled", "true")
-//      .config("spark.dynamicAllocation.initialExecutors", 2)
-//      .config("spark.dynamicAllocation.minExecutors", 1)
-//      .config("spark.dynamicAllocation.maxExecutors", 6)
-//      .config("spark.dynamicAllocation.schedulerBacklogTimeout", "10s")
-//      .config("spark.speculation", "true")
       .config("spark.streaming.backpressure.enabled", "true")
       .config("spark.streaming.blockInterval", "2s")
       .config("spark.defalut.parallelism", "3")
@@ -58,7 +52,7 @@ object ProcessMysqlData extends Logging {
       .getOrCreate()
 
     //设置当前为测试环境
-//    CommonUtil.setTestEvn
+    //    CommonUtil.setTestEvn
 
     // config kafka
     val kafkaParams = Map[String, Object](
@@ -66,7 +60,7 @@ object ProcessMysqlData extends Logging {
       "key.deserializer" -> classOf[JsonDeserializer],
       "value.deserializer" -> classOf[JsonDeserializer],
       "group.id" -> groupId,
-      "auto.offset.reset" -> "latest",
+      "auto.offset.reset" -> "earliest",
       "enable.auto.commit" -> (false: java.lang.Boolean)
     )
     //获取offset
@@ -75,8 +69,6 @@ object ProcessMysqlData extends Logging {
     val topics: Array[String] = getMysqlTopic
     //config spark Streaming
     val ssc = new StreamingContext(spark.sparkContext, Seconds(batchInterval))
-    ssc.checkpoint(CommonUtil.getCheckpointDir)
-
     //拉取kafka数据
     val stream: InputDStream[ConsumerRecord[String, ObjectNode]] = if (formdbOffset.size == 0) {
       KafkaUtils.createDirectStream[String, ObjectNode](
@@ -92,9 +84,7 @@ object ProcessMysqlData extends Logging {
 
       )
     }
-
     processDataWithRedis(spark, stream)
-    //    processData(spark, stream)
 
     ssc.start()
     ssc.awaitTermination()
@@ -113,7 +103,7 @@ object ProcessMysqlData extends Logging {
       //如果数据为空时，BlockGenerator默认会不生成Block，也就是不会生成partition
       //适合Dstream 进来后没有经过 类似 reduce 操作的
       //经过 reduce 操作:rdd.rdd().dependencies().apply(0).rdd().partitions().length==0
-      if (!rdd.partitions.isEmpty) {
+      if (!rdd.isEmpty) {
         val offsetRange = rdd.asInstanceOf[HasOffsetRanges].offsetRanges
         val tableValue = rdd.filter(r => r.value != null)
           .map(record => convertTableJsonStr(record.value)).reduceByKey(_ ++ _)
@@ -127,8 +117,6 @@ object ProcessMysqlData extends Logging {
                 logInfo("ArrayBuffer[String]:" + info._1 + info._2(0).toString)
                 // 对每个类型的记录
                 info._1 match {
-//                  case "tbl" => saveTbl(info, con)
-//                  case "steaming_record" => saveSteamingRecord(info, con)
                   case "doulist" => saveDoulist(info, con)
                   case "doulist_movie_detail" => saveDoulistMovieDetail(info, con)
                   case "film_critics" => saveFilmCritics(info, con)
@@ -140,7 +128,6 @@ object ProcessMysqlData extends Logging {
             }
             MysqlUtil.colseConnection(con)
         }
-        //        val jedis: JedisCluster = RedisUtil.getJedisCluster
         val jedis = CommonUtil.getRedis
         logInfo("offsetRange:" + offsetRange)
         //偏移量存入redis
@@ -149,7 +136,7 @@ object ProcessMysqlData extends Logging {
           jedis.hset(groupId, or.topic + "-" + or.partition, or.untilOffset.toString)
         }
       }
-//      rdd.count()
+      rdd.count()
 
     }
   }
@@ -253,6 +240,7 @@ object ProcessMysqlData extends Logging {
     val sql = "upsert INTO doulist(id,movieid,doulist_url,doulist_name,doulist_intr,user_name,user_url," +
       "collect_num,recommend_num,movie_num,doulist_cratedDate,doulist_updatedDate,created_time)" +
       "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,CONVERT_TZ(CURRENT_DATE(), 'UTC', 'Asia/Shanghai'))"
+//    val sql = "upsert INTO doulist(id,movieid) VALUES(?,?)"
     logInfo(sql)
     logInfo(list(0).toString)
     logInfo("insert doulist size:" + list.size)
@@ -455,6 +443,7 @@ object ProcessMysqlData extends Logging {
   }
 
   def convertTableJsonStr(json: ObjectNode): (String, ArrayBuffer[String]) = {
+    logInfo("convertTableJsonStr:" + json.toString)
     val jsonObject = JSON.parseObject(json.toString);
     val data = jsonObject.getString("payload");
     val schema = JSON.parseObject(jsonObject.getString("schema"));
@@ -465,19 +454,19 @@ object ProcessMysqlData extends Logging {
 
   def getMysqlTopic: Array[String] = {
 
-    var topics = Array("mysql-cluster-bigdata.bigdata.doulist",
-      "mysql-cluster-bigdata.bigdata.doulist_movie_detail",
-      "mysql-cluster-bigdata.bigdata.film_critics",
-      "mysql-cluster-bigdata.bigdata.movie_base_info",
-      "mysql-cluster-bigdata.bigdata.movie_detail",
-      "mysql-cluster-bigdata.bigdata.movie_essay")
+    var topics = Array("mysql-clusterc.bigdata.doulist",
+      "mysql-clusterc.bigdata.doulist_movie_detail",
+      "mysql-clusterc.bigdata.film_critics",
+      "mysql-clusterc.bigdata.movie_base_info",
+      "mysql-clusterc.bigdata.movie_detail",
+      "mysql-clusterc.bigdata.movie_essay")
     if (CommomConfig.isTest) {
       topics = Array("mysqlfullfillment.test.steaming_record", "mysqlfullfillment.test.tbl",
         "mysqlfullfillment.test.doulist", "mysqlfullfillment.test.doulist_movie_detail",
         "mysqlfullfillment.test.film_critics", "mysqlfullfillment.test.movie_base_info", "mysqlfullfillment.test.movie_detail",
         "mysqlfullfillment.test.movie_essay")
     }
-    logInfo("topic:" + topics)
+    logError("topic:" + topics)
     topics
   }
 }

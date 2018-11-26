@@ -35,17 +35,19 @@ cd /usr/local/userlib/kafka/bin
 --partitions 2 --topic test1
 ./kafka-console-producer.sh --broker-list 192.168.0.101:9092,192.168.0.107:9092,192.168.0.108:9092 --topic test1
 ./kafka-topics.sh --list --zookeeper 192.168.0.101:2181,192.168.0.107:2181,192.168.0.108:2181
-./kafka-console-consumer.sh --zookeeper 192.168.0.101:2181,192.168.0.107:2181,192.168.0.108:2181 --topic mysqlclustertest.test.tbl --from-beginning
-./kafka-topics.sh -zookeeper 192.168.0.101:2181,192.168.0.107:2181,192.168.0.108:2181 --topic movie-essay-topic --describe
+./kafka-console-consumer.sh --zookeeper 192.168.0.101:2181,192.168.0.107:2181,192.168.0.108:2181 --topic mysql-clustera.test.doulist --from-beginning
+./kafka-topics.sh -zookeeper 192.168.0.101:2181,192.168.0.107:2181,192.168.0.108:2181 --topic mysql-cluster2.bigdata.doulist --describe
 # ./kafka-topics.sh --list --zookeeper 192.168.0.100:2181
 # ./kafka-console-producer.sh --broker-list 192.168.0.100:9092 --topic mysqlfullfillment.test.doulist
 # ./kafka-console-consumer.sh --zookeeper 192.168.0.100:2181 --topic mysqlfullfillment.test.doulist
 ./kafka-topics.sh --delete --zookeeper 192.168.0.101:2181,192.168.0.107:2181,192.168.0.108:2181 --topic movie-essay-topic
 
 
+./kafka-topics.sh --create --zookeeper 192.168.0.101:2181,192.168.0.107:2181,192.168.0.108:2181 --replication-factor 2 --partitions 1 --topic connect-configs-mysql
+
 # Debezium
 bin/connect-standalone.sh config/connect-standalone.properties config/mysql-local.properties
-bin/connect-distributed.sh config/connect-distributed.properties
+bin/connect-distributed.sh config/connect-distributed-mysql.properties
 
 # mysql
 mysql -h192.168.0.100 -p3306 -udebezium -p
@@ -57,8 +59,9 @@ zkCli.sh -server 192.168.0.101
 start-dfs.sh
 start-yarn.sh
 start-hbase.sh
+cd /usr/local/userlib/spark-2.2/
 ./sbin/start-history-server.sh
-$spark/start-all.sh
+./sbin/start-all.sh
 
 hdfs haadmin -getServiceState nn1
 hbase-daemons.sh start regionserver
@@ -80,6 +83,8 @@ src/redis-cli -h 192.168.0.107 -p 7001 shutdown
 src/redis-cli -h 192.168.0.108 -p 7000 shutdown
 src/redis-cli -h 192.168.0.108 -p 7001 shutdown
 
+#每个节点
+cd /usr/local/userlib/redis-3.2.12
 src/redis-server cluster-redis/7000/redis.conf
 src/redis-server cluster-redis/7001/redis.conf
 
