@@ -34,7 +34,7 @@ import scala.collection.mutable.ArrayBuffer
   * 18-10-9
   */
 object ProcessMysqlData extends Logging {
-  val batchInterval: Int = 4
+  val batchInterval: Int = 6
   val groupId = "ProcessMysqlDataGroup"
 
   def main(args: Array[String]): Unit = {
@@ -44,10 +44,10 @@ object ProcessMysqlData extends Logging {
       .appName("ProcessMysqlData")
       .config("spark.streaming.stopGracefullyOnShutdown", "true")
       .config("spark.dynamicAllocation.enabled", "false")
-      .config("spark.streaming.kafka.maxRatePerPartition", 100)
+      .config("spark.streaming.kafka.maxRatePerPartition", 1000)
       .config("spark.streaming.backpressure.enabled", "true")
-      .config("spark.streaming.blockInterval", "2s")
-      .config("spark.defalut.parallelism", "3")
+      .config("spark.streaming.blockInterval", "3s")
+      .config("spark.defalut.parallelism", "6")
       .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
       .getOrCreate()
 

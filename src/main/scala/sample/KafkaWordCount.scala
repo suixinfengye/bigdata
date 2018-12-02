@@ -2,6 +2,7 @@
 package sample
 
 import com.alibaba.fastjson.JSON
+import javax.servlet.http.HttpServletRequest
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.spark.internal.Logging
@@ -29,12 +30,12 @@ object KafkaWordCount extends Logging {
   def main(args: Array[String]) {
     val spark = SparkSession
       .builder()
-      .master("local")
+//      .master("local")
       .appName("KafkaWordCount")
       .config("spark.streaming.stopGracefullyOnShutdown", "true")
       .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
       .getOrCreate()
-//    simpleTestCode(spark)
+    //    simpleTestCode(spark)
     simpleClusterTest(spark)
   }
 
@@ -137,7 +138,7 @@ object KafkaWordCount extends Logging {
     val schema = JSON.parseObject(jsonObject.getString("schema"));
     val topicName = schema.getString("name").split("\\.")
     val tableName = topicName(topicName.size - 2)
-    println(tableName+"data:"+data)
+    println(tableName + "data:" + data)
     (tableName, ArrayBuffer(data))
   }
 
@@ -152,11 +153,12 @@ object KafkaWordCount extends Logging {
     )
     //    val topics = Array("connect-test")
     print("hhhhhhhhhhhhhhhhhhhh")
+    logInfo("=====================:"+classOf[HttpServletRequest].getProtectionDomain.getCodeSource.toString)
     val topics = Array("mysql-clustera.test.doulist")
-    val ssc = new StreamingContext(spark.sparkContext, Seconds(2))
-    //    ssc.checkpoint("hdfs://localhost:9000//spark//checkpoint")
-
-    ssc.checkpoint("/home/feng/software/code/bigdata/spark-warehouse")
+    val ssc = new StreamingContext(spark.sparkContext, Seconds(8))
+//    ssc.checkpoint("hdfs://localhost:9000//spark//checkpoint")
+    ssc.checkpoint("hdfs://spark1:9000//spark//checkpoint")
+    //    ssc.checkpoint("/home/feng/software/code/bigdata/spark-warehouse")
     val stream = KafkaUtils.createDirectStream[String, String](
       ssc,
       PreferBrokers,
@@ -165,7 +167,15 @@ object KafkaWordCount extends Logging {
 
     stream.map(mapFunc = record => (record.key, record.value)).foreachRDD(
       r => r.collect().foreach(t => print("---------" + t)))
-
+    stream.
+    stream.foreachRDD{
+      t=>
+        val buf = scala.collection.mutable.ListBuffer.empty[Int]
+        for (i <- 0 to 20000000) {
+          buf += i
+        }
+        t.count()
+    }
     ssc.start()
     ssc.awaitTermination()
   }

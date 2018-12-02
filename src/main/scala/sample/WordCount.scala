@@ -25,7 +25,7 @@ object WordCount {
   def main(args: Array[String]) {
     val spark = SparkSession
       .builder()
-//      .master("local")
+      .master("local")
       .appName("WordCount")
       .getOrCreate()
 //    val file = spark.sparkContext.textFile("hdfs://localhost:9000/test/common")

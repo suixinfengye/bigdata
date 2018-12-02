@@ -27,14 +27,25 @@ object CommonTest {
     //    reverse("21565")
     //    testConfig
     //    testDateFormat
-    getCharset
+//    getCharset
     val list = "dfdf".split("---==---")
     list.foreach { item =>
       println("___")
     }
+    whereClass
+
+    val buf = scala.collection.mutable.ListBuffer.empty[Int]
+    for (i <- 0 to 20000000) {
+      buf += i
+    }
   }
 
+  import org.junit.Test
+  import javax.servlet.http.HttpServletRequest
 
+  @Test def whereClass(): Unit = {
+    System.out.println(classOf[HttpServletRequest].getProtectionDomain.getCodeSource.toString)
+  }
 //  def testNull: Unit ={
 //    reco
 //  }

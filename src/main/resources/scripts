@@ -46,6 +46,7 @@ cd /usr/local/userlib/kafka/bin
 ./kafka-topics.sh --create --zookeeper 192.168.0.101:2181,192.168.0.107:2181,192.168.0.108:2181 --replication-factor 2 --partitions 1 --topic connect-configs-mysql
 
 # Debezium
+cd /usr/local/userlib/kafka
 bin/connect-standalone.sh config/connect-standalone.properties config/mysql-local.properties
 bin/connect-distributed.sh config/connect-distributed-mysql.properties
 
