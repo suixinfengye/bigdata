@@ -167,15 +167,15 @@ object KafkaWordCount extends Logging {
 
     stream.map(mapFunc = record => (record.key, record.value)).foreachRDD(
       r => r.collect().foreach(t => print("---------" + t)))
-    stream.
-    stream.foreachRDD{
-      t=>
-        val buf = scala.collection.mutable.ListBuffer.empty[Int]
-        for (i <- 0 to 20000000) {
-          buf += i
-        }
-        t.count()
-    }
+//    stream.
+//    stream.foreachRDD{
+//      t=>
+//        val buf = scala.collection.mutable.ListBuffer.empty[Int]
+//        for (i <- 0 to 20000000) {
+//          buf += i
+//        }
+//        t.count()
+//    }
     ssc.start()
     ssc.awaitTermination()
   }

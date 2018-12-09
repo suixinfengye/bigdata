@@ -4,7 +4,8 @@ cd /home/feng/software/visualvm_142/
 ./bin/visualvm
 
 cd /usr/local/userlib/conf/jvm
-jstatd -J-Djava.security.policy=/usr/local/userlib/conf/jvm/jstatd.all.policy -J-Djava.rmi.server.hostname=192.168.0.101  -J-Djava.rmi.server.logCalls=true
+jstatd -J-Djava.security.policy=/usr/local/userlib/conf/jvm/jstatd.all.policy -J-Djava.rmi.server.hostname=192.168.0.101
+ -J-Djava.rmi.server.logCalls=true
 jstatd -J-Djava.security.policy=/usr/local/userlib/conf/jvm/jstatd.all.policy -J-Djava.rmi.server.hostname=192.168.0.107
  -J-Djava.rmi.server.logCalls=true
 jstatd -J-Djava.security.policy=/usr/local/userlib/conf/jvm/jstatd.all.policy -J-Djava.rmi.server.hostname=192.168.0.108
@@ -32,11 +33,11 @@ bin/flume-ng agent -n logser -c conf -f conf/flume_movie_eassy.conf
 cd /usr/local/userlib/kafka/bin
 ./kafka-server-start.sh -daemon ../config/server.properties
 ./kafka-topics.sh --create --zookeeper 192.168.0.101:2181,192.168.0.107:2181,192.168.0.108:2181 --replication-factor 2
---partitions 2 --topic test1
+--partitions 2 --topic test11
 ./kafka-console-producer.sh --broker-list 192.168.0.101:9092,192.168.0.107:9092,192.168.0.108:9092 --topic test1
 ./kafka-topics.sh --list --zookeeper 192.168.0.101:2181,192.168.0.107:2181,192.168.0.108:2181
-./kafka-console-consumer.sh --zookeeper 192.168.0.101:2181,192.168.0.107:2181,192.168.0.108:2181 --topic mysql-clustera.test.doulist --from-beginning
-./kafka-topics.sh -zookeeper 192.168.0.101:2181,192.168.0.107:2181,192.168.0.108:2181 --topic mysql-cluster2.bigdata.doulist --describe
+./kafka-console-consumer.sh --zookeeper 192.168.0.101:2181,192.168.0.107:2181,192.168.0.108:2181 --topic mysql-clusterc.bigdata.doulist --from-beginning
+./kafka-topics.sh -zookeeper 192.168.0.101:2181,192.168.0.107:2181,192.168.0.108:2181 --topic mysql-clusterc.bigdata.doulist --describe
 # ./kafka-topics.sh --list --zookeeper 192.168.0.100:2181
 # ./kafka-console-producer.sh --broker-list 192.168.0.100:9092 --topic mysqlfullfillment.test.doulist
 # ./kafka-console-consumer.sh --zookeeper 192.168.0.100:2181 --topic mysqlfullfillment.test.doulist

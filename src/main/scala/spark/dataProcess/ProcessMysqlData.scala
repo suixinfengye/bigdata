@@ -20,16 +20,16 @@ import utils.{CommonUtil, _}
 import scala.collection.mutable.ArrayBuffer
 
 /**
-  * ./bin/spark-submit \
-  * --class spark.dataProcess.ProcessMysqlData \
-  * --master spark://spark1:7077 \
-  * --executor-memory 1G \
-  * --num-executors 3 \
-  * --total-executor-cores 3 \
-  * --files "/usr/local/userlib/conf/log4j.properties" \
-  * --driver-java-options "-Dlog4j.debug=true -Dlog4j.configuration=log4j.properties" \
-  * --conf "spark.executor.extraJavaOptions=-Dlog4j.debug=true -Dlog4j.configuration=log4j.properties" \
-  * /usr/local/userlib/jars/bigdata.jar
+./bin/spark-submit \
+--class spark.dataProcess.ProcessMysqlData \
+--master spark://spark1:7077 \
+--executor-memory 1G \
+--num-executors 2 \
+--total-executor-cores 2 \
+--files "/usr/local/userlib/conf/log4j-executor.properties" \
+--driver-java-options "-Dlog4j.debug=true -Dlog4j.configuration=log4j.properties" \
+--conf "spark.executor.extraJavaOptions=-Dlog4j.debug=true -Dlog4j.configuration=log4j-executor.properties -XX:+PrintGCDetails -Xloggc:/usr/local/userlib/spark-2.2/logs/executor_gc.log -XX:+PrintGCDateStamps -XX:+PrintHeapAtGC" \
+/usr/local/userlib/jars/bigdata.jar
   * feng
   * 18-10-9
   */
@@ -44,7 +44,7 @@ object ProcessMysqlData extends Logging {
       .appName("ProcessMysqlData")
       .config("spark.streaming.stopGracefullyOnShutdown", "true")
       .config("spark.dynamicAllocation.enabled", "false")
-      .config("spark.streaming.kafka.maxRatePerPartition", 1000)
+      .config("spark.streaming.kafka.maxRatePerPartition", 150)
       .config("spark.streaming.backpressure.enabled", "true")
       .config("spark.streaming.blockInterval", "3s")
       .config("spark.defalut.parallelism", "6")
@@ -443,7 +443,7 @@ object ProcessMysqlData extends Logging {
   }
 
   def convertTableJsonStr(json: ObjectNode): (String, ArrayBuffer[String]) = {
-    logInfo("convertTableJsonStr:" + json.toString)
+    logTrace("convertTableJsonStr:" + json.toString)
     val jsonObject = JSON.parseObject(json.toString);
     val data = jsonObject.getString("payload");
     val schema = JSON.parseObject(jsonObject.getString("schema"));

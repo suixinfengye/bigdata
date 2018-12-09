@@ -4,12 +4,11 @@ import java.sql.Timestamp
 import java.util.Date
 
 import org.apache.hadoop.hbase.HBaseConfiguration
-import org.apache.spark.sql.{SQLContext, SparkSession}
 import org.apache.phoenix.spark._
-import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.SparkSession
 import org.slf4j.LoggerFactory
 import spark.dto.SteamingRecord
-import utils.{CommomConfig, CommonUtil, MyConstant, MyDateUtil}
+import utils.{CommonUtil, MyConstant, MyDateUtil}
 
 import scala.util.Random
 
@@ -27,15 +26,14 @@ object PhoenixSpark {
     //设置当前为测试环境
     CommonUtil.setTestEvn
 
-    dataFrameTest(spark)
-
+//    dataFrameTest(spark)
+//
     //    spark.read.format("org.apache.phoenix.spark").option("table" ,"WEB_STAT").option("zkUrl", "localhost:2181").load().show()
     //    spark.read.format("org.apache.phoenix.spark").option("table", "WEB_STAT").option("zkUrl", "spark1:2181").load().show()
     spark.stop()
   }
 
   def rddTest(spark: SparkSession): Unit = {
-    import spark.implicits._
 
     val conf = HBaseConfiguration.create()
     conf.set("mapreduce.output.fileoutputformat.outputdir", "hdfs://localhost:9000/tmp/mapreduceOutput");
