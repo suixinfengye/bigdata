@@ -20,14 +20,20 @@ import utils.{CommonUtil, _}
 import scala.collection.mutable.ArrayBuffer
 
 /**
+  * 增大executor memory,开启推测执行
 ./bin/spark-submit \
 --class spark.dataProcess.ProcessMysqlData \
 --master spark://spark1:7077 \
 --executor-memory 1G \
---num-executors 2 \
---total-executor-cores 2 \
+--num-executors 3 \
+--total-executor-cores 3 \
 --files "/usr/local/userlib/conf/log4j-executor.properties" \
 --driver-java-options "-Dlog4j.debug=true -Dlog4j.configuration=log4j.properties" \
+--conf spark.memory.fraction=0.8 \
+--conf spark.memory.storageFraction=0.3 \
+--conf spark.speculation=true \
+--conf spark.speculation.interval=500ms \
+--conf spark.speculation.multiplier=3 \
 --conf "spark.executor.extraJavaOptions=-Dlog4j.debug=true -Dlog4j.configuration=log4j-executor.properties -XX:+PrintGCDetails -Xloggc:/usr/local/userlib/spark-2.2/logs/executor_gc.log -XX:+PrintGCDateStamps -XX:+PrintHeapAtGC" \
 /usr/local/userlib/jars/bigdata.jar
   * feng
@@ -454,12 +460,12 @@ object ProcessMysqlData extends Logging {
 
   def getMysqlTopic: Array[String] = {
 
-    var topics = Array("mysql-clusterc.bigdata.doulist",
-      "mysql-clusterc.bigdata.doulist_movie_detail",
-      "mysql-clusterc.bigdata.film_critics",
-      "mysql-clusterc.bigdata.movie_base_info",
-      "mysql-clusterc.bigdata.movie_detail",
-      "mysql-clusterc.bigdata.movie_essay")
+    var topics = Array("mysql-clusterd.bigdata.doulist",
+      "mysql-clusterd.bigdata.doulist_movie_detail",
+      "mysql-clusterd.bigdata.film_critics",
+      "mysql-clusterd.bigdata.movie_base_info",
+      "mysql-clusterd.bigdata.movie_detail",
+      "mysql-clusterd.bigdata.movie_essay")
     if (CommomConfig.isTest) {
       topics = Array("mysqlfullfillment.test.steaming_record", "mysqlfullfillment.test.tbl",
         "mysqlfullfillment.test.doulist", "mysqlfullfillment.test.doulist_movie_detail",

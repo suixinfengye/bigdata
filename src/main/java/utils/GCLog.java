@@ -12,11 +12,15 @@ import java.util.regex.Pattern;
 public class GCLog {
     public static void main(String args[]) {
         GCLog gcLog = new GCLog();
-        gcLog.readFileByLines("/home/feng/file/ip101/logs/worker_gc.log");
-        gcLog.readFileByLines("/home/feng/file/ip101/logs/master_gc.log");
-        gcLog.readFileByLines("/home/feng/file/ip101/logs/executor_gc.log");
-        gcLog.readFileByLines("/home/feng/file/ip107/logs/worker_gc.log");
-        gcLog.readFileByLines("/home/feng/file/ip107/logs/executor_gc.log");
+        gcLog.readFileByLines("/media/feng/FENG/new/new/logs/worker_gc.log");
+        gcLog.readFileByLines("/media/feng/FENG/new/new/logs/master_gc.log");
+        gcLog.readFileByLines("/media/feng/FENG/new/new/logs/executor_gc.log");
+
+        gcLog.readFileByLines("/media/feng/FENG/new/new/2/logs/worker_gc.log");
+        gcLog.readFileByLines("/media/feng/FENG/new/new/2/logs/executor_gc.log");
+
+        gcLog.readFileByLines("/media/feng/FENG/new/new/3/logs/worker_gc.log");
+        gcLog.readFileByLines("/media/feng/FENG/new/new/3/logs/executor_gc.log");
     }
 
     public void readFileByLines(String filePath) {
