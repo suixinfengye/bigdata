@@ -40,27 +40,17 @@
 # - SPARK_EXECUTOR_MEMORY, Memory per Executor (e.g. 1000M, 2G) (Default: 1G)
 # - SPARK_DRIVER_MEMORY, Memory for Driver (e.g. 1000M, 2G) (Default: 1G)
 
-
 # Options for the daemons used in the standalone deploy mode
 # - SPARK_MASTER_HOST, to bind the master to a different IP address or hostname
 # - SPARK_MASTER_PORT / SPARK_MASTER_WEBUI_PORT, to use non-default ports for the master
 # - SPARK_MASTER_OPTS, to set config properties only for the master (e.g. "-Dx=y")
 # - SPARK_WORKER_CORES, to set the number of cores to use on this machine
-#export SPARK_WORKER_CORES=2
-#export SPARK_WORKER_MEMORY=1g
-#export SPARK_DAEMON_MEMORY=500m
 # - SPARK_WORKER_MEMORY, to set how much total memory workers have to give executors (e.g. 1000m, 2g)
 # - SPARK_WORKER_PORT / SPARK_WORKER_WEBUI_PORT, to use non-default ports for the worker
 # - SPARK_WORKER_DIR, to set the working directory of worker processes
 # - SPARK_WORKER_OPTS, to set config properties only for the worker (e.g. "-Dx=y")
 # - SPARK_DAEMON_MEMORY, to allocate to the master, worker and history server themselves (default: 1g).
 # - SPARK_HISTORY_OPTS, to set config properties only for the history server (e.g. "-Dx=y")
-SPARK_MASTER_OPTS="-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=9448 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -XX:+PrintGCDetails -Xloggc:/usr/local/userlib/spark-2.2/logs/master_gc.log -XX:+PrintGCDateStamps -XX:+PrintHeapAtGC -XX:+PrintGCApplicationConcurrentTime -XX:+PrintGCApplicationStoppedTime"
-
-SPARK_WORKER_OPTS="-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=9450 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -XX:+PrintGCDetails -Xloggc:/usr/local/userlib/spark-2.2/logs/worker_gc.log -XX:+PrintGCDateStamps -XX:+PrintHeapAtGC -XX:+PrintGCApplicationConcurrentTime -XX:+PrintGCApplicationStoppedTime"
-
-SPARK_HISTORY_OPTS="-Dspark.history.fs.logDirectory=hdfs://spark1:9000/spark-logs -Dspark.history.fs.cleaner.enabled=true -Dspark.history.fs.cleaner.interval=2d -Dspark.history.fs.cleaner.maxAge=8d -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=9452 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false"
-
 # - SPARK_SHUFFLE_OPTS, to set config properties only for the external shuffle service (e.g. "-Dx=y")
 # - SPARK_DAEMON_JAVA_OPTS, to set config properties for all daemons (e.g. "-Dx=y")
 # - SPARK_DAEMON_CLASSPATH, to set the classpath for all daemons
@@ -78,12 +68,10 @@ SPARK_HISTORY_OPTS="-Dspark.history.fs.logDirectory=hdfs://spark1:9000/spark-log
 # - MKL_NUM_THREADS=1        Disable multi-threading of Intel MKL
 # - OPENBLAS_NUM_THREADS=1   Disable multi-threading of OpenBLAS
 
-
 export JAVA_HOME=/usr/java/latest
 export SCALA_HOME=/usr/local/userlib/scala
 export SPARK_MASTER_HOST=spark1
-export SPARK_WORKER_MEMORY=1200m
+export SPARK_WORKER_MEMORY=500m
 export HADOOP_CONF_DIR=/usr/local/userlib/hadoop/etc/hadoop
 export HADOOP_HOME=/usr/local/userlib/hadoop
-#export SPARK_CLASSPATH=/usr/local/userlib/hbase/lib/guava-11.0.2.jar:/usr/local/userlib/hbase/lib/hbase-client-2.0.1.jar:/usr/local/userlib/hbase/lib/hbase-common-2.0.1.jar:/usr/local/userlib/hbase/lib/hbase-protocol-2.0.1.jar:/usr/local/userlib/hbase/lib/hbase-server-2.0.1.jar:/usr/local/userlib/hbase/lib/htrace-core-3.2.0-incubating.jar:/usr/local/userlib/hbase/lib/protobuf-java-2.5.0.jar:$SPARK_CLASSPATH
-#export SPARK_CLASSPATH=${HBASE_HOME}/lib/*:$SPARK_CLASSPATH
+

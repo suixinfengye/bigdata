@@ -25,7 +25,7 @@ export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
 # 默认20m
 # export JAVA_OPTS="-Xms100m -Xmx200m -Dcom.sun.management.jmxremote"
 # 支持JMX监控,也可以用Jconsole监控
-export JAVA_OPTS="-server -Xms200m -Xmx500m -XX:+PrintFlagsFinal -XX:+PrintGCDetails -Xloggc:/home/feng/software/flume/logs/fulme_gc.log -XX:+PrintGCTimeStamps 
+export JAVA_OPTS="-server -Xms400m -Xmx500m -XX:+PrintFlagsFinal -XX:+PrintGCDetails -Xloggc:/home/feng/software/flume/logs/fulme_gc.log -XX:+PrintGCTimeStamps 
 -XX:+PrintGCDateStamps -XX:+PrintTenuringDistribution -XX:NewRatio=1 
 -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=5445 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false
 -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/home/feng/software/data/flume_heapdump.hprof"

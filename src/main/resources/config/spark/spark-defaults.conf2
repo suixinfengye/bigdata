@@ -31,8 +31,8 @@ spark.shuffle.service.enabled	true
 spark.yarn.archive 	 hdfs://spark1:9000/tmp/sparkjars/spark-libs.zip
 
 spark.driver.memory              600m
-spark.driver.extraJavaOptions	-XX:+PrintGCDetails -Xloggc:/usr/local/userlib/spark-2.2/logs/driver_gc.log -XX:+PrintGCTimeStamps -XX:+PrintHeapAtGC 
-spark.executor.extraJavaOptions  -XX:+PrintGCDetails -Xloggc:/usr/local/userlib/spark-2.2/logs/executor_gc.log -XX:+PrintGCTimeStamps -XX:+PrintHeapAtGC 
+#spark.driver.extraJavaOptions	-Xmx600m -Xms600m
+#spark.executor.extraJavaOptions  -XX:+PrintGCDetails -Dkey=value -Dnumbers="one two three"
 
 spark.executor.extraClassPath      /usr/local/userlib/phoenix-4.14.0-HBase-1.4/phoenix-4.14.0-HBase-1.4-client.jar:/usr/local/userlib/phoenix-4.14.0-HBase-1.4/phoenix-spark-4.14.0-HBase-1.4.jar
 

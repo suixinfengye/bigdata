@@ -53,4 +53,21 @@
             <name>hbase.master</name>
             <value>spark1:60000</value>
    </property>
+
+<property>
+	<name>hbase.master.info.port</name>
+	<value>60110</value>
+</property>
+<!-- https://phoenix.apache.org/tuning.html -->
+<property>
+   <name>phoenix.query.dateFormatTimeZone</name> 
+   <value>GMT+08:00</value>
+</property>
+
+<!-- Phoenix支持两种索引：可变索引跟不可变索引。在可变表上建的索引是可变索引，在不可变表上建的索引是不可变索引。可变索引是指插入或删除数据的时候会同时更新索引；不可变索引适用于只写入一次不再更改的表，索引只建立一次，再插入数据不会更新索引。 -->
+<property> 
+	<name>hbase.regionserver.wal.codec</name> 
+	<value>org.apache.hadoop.hbase.regionserver.wal.IndexedWALEditCodec</value> 
+</property>
+
 </configuration>
