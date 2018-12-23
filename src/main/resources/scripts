@@ -19,6 +19,8 @@ SPARK_MASTER_OPTS="-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote
 SPARK_WORKER_OPTS="-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=9450 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false"
 SPARK_HISTORY_OPTS="-Dspark.history.fs.logDirectory=hdfs://spark1:9000/spark-logs -Dspark.history.fs.cleaner.enabled=true -Dspark.history.fs.cleaner.interval=2d -Dspark.history.fs.cleaner.maxAge=8d -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=9452 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false"
 
+jmap -dump:format=b,file=/usr/local/userlib/spark-2.2/logs/heap_dump2.hprof 32623
+
 # python
 source /home/feng/software/python/venv/bin/activate
 cd /media/feng/资源/bigdata/doubanSpider/doubanSpider/spiders
@@ -44,12 +46,34 @@ cd /usr/local/userlib/kafka/bin
 ./kafka-topics.sh --delete --zookeeper 192.168.0.101:2181,192.168.0.107:2181,192.168.0.108:2181 --topic movie-essay-topic
 
 
-./kafka-topics.sh --create --zookeeper 192.168.0.101:2181,192.168.0.107:2181,192.168.0.108:2181 --replication-factor 2 --partitions 1 --topic connect-configs-mysqld
+./kafka-topics.sh --create --zookeeper 192.168.0.101:2181,192.168.0.107:2181,192.168.0.108:2181 --replication-factor 2  --partitions 1 --topic connect-configs-mysqld1
 
 # Debezium
 cd /usr/local/userlib/kafka
 bin/connect-standalone.sh config/connect-standalone.properties config/mysql-local.properties
 bin/connect-distributed.sh config/connect-distributed-mysql.properties
+
+http://192.168.0.101:8083/connectors
+ {
+   	"name": "mysql-clusterd1",
+	"config": {
+		"connector.class": "io.debezium.connector.mysql.MySqlConnector",
+		"database.hostname": "192.168.0.100",
+		"database.port": "3306",
+		"database.user": "debezium",
+		"database.password": "feng",
+		"database.server.id": "18410",
+		"database.server.name": "mysql-clusterd1",
+		"database.whitelist": "bigdata",
+		"table.blacklist":"bigdata.trick_url,bigdata.steaming_record",
+		"database.history.kafka.bootstrap.servers": "192.168.0.101:9092,192.168.0.107:9092,192.168.0.108:9092",
+		"database.history.kafka.topic": "cluster-bigdatad1",
+		"include.schema.changes": "true",
+		"transforms": "unwrap",
+		"transforms.unwrap.type": "io.debezium.transforms.UnwrapFromEnvelope",
+      "decimal.handling.modestring":"double"
+    }
+  }
 
 # mysql
 mysql -h192.168.0.100 -p3306 -udebezium -p

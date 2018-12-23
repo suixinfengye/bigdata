@@ -34,7 +34,7 @@ import scala.collection.mutable.ArrayBuffer
 --conf spark.speculation=true \
 --conf spark.speculation.interval=500ms \
 --conf spark.speculation.multiplier=3 \
---conf "spark.executor.extraJavaOptions=-Dlog4j.debug=true -Dlog4j.configuration=log4j-executor.properties -XX:+PrintGCDetails -Xloggc:/usr/local/userlib/spark-2.2/logs/executor_gc.log -XX:+PrintGCDateStamps -XX:+PrintHeapAtGC" \
+--conf "spark.executor.extraJavaOptions=-Dlog4j.debug=true -Dlog4j.configuration=log4j-executor.properties -XX:+PrintGCDetails -Xloggc:/usr/local/userlib/spark-2.2/logs/executor_gc.log -XX:+PrintGCDateStamps -XX:+PrintHeapAtGC -XX:+UseConcMarkSweepGC -XX:+PrintTenuringDistribution -Xms600m -XX:NewRatio=1 -XX:+PrintCommandLineFlags -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/usr/local/userlib/spark-2.2/logs/executor_oom.hprof" \
 /usr/local/userlib/jars/bigdata.jar
   * feng
   * 18-10-9
@@ -50,7 +50,7 @@ object ProcessMysqlData extends Logging {
       .appName("ProcessMysqlData")
       .config("spark.streaming.stopGracefullyOnShutdown", "true")
       .config("spark.dynamicAllocation.enabled", "false")
-      .config("spark.streaming.kafka.maxRatePerPartition", 150)
+      .config("spark.streaming.kafka.maxRatePerPartition", 100)
       .config("spark.streaming.backpressure.enabled", "true")
       .config("spark.streaming.blockInterval", "3s")
       .config("spark.defalut.parallelism", "6")
@@ -460,12 +460,12 @@ object ProcessMysqlData extends Logging {
 
   def getMysqlTopic: Array[String] = {
 
-    var topics = Array("mysql-clusterd.bigdata.doulist",
-      "mysql-clusterd.bigdata.doulist_movie_detail",
-      "mysql-clusterd.bigdata.film_critics",
-      "mysql-clusterd.bigdata.movie_base_info",
-      "mysql-clusterd.bigdata.movie_detail",
-      "mysql-clusterd.bigdata.movie_essay")
+    var topics = Array("mysql-clusterd1.bigdata.doulist",
+      "mysql-clusterd1.bigdata.doulist_movie_detail",
+      "mysql-clusterd1.bigdata.film_critics",
+      "mysql-clusterd1.bigdata.movie_base_info",
+      "mysql-clusterd1.bigdata.movie_detail",
+      "mysql-clusterd1.bigdata.movie_essay")
     if (CommomConfig.isTest) {
       topics = Array("mysqlfullfillment.test.steaming_record", "mysqlfullfillment.test.tbl",
         "mysqlfullfillment.test.doulist", "mysqlfullfillment.test.doulist_movie_detail",
