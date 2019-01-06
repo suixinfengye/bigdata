@@ -50,8 +50,10 @@ cd /usr/local/userlib/kafka/bin
 
 # Debezium
 cd /usr/local/userlib/kafka
-bin/connect-standalone.sh config/connect-standalone.properties config/mysql-local.properties
 bin/connect-distributed.sh config/connect-distributed-mysql.properties
+bin/connect-standalone.sh config/connect-standalone.properties config/mysql-local.properties
+
+
 
 http://192.168.0.101:8083/connectors
  {
@@ -148,3 +150,6 @@ bind 127.0.0.1
 
 #spark
 start-shuffle-service.sh #动态资源分配用到外部服务进程
+
+grep -rin "23:12:18" executor.log
+cat executor.log | tail -n +60000 | head -n 10000  > temp

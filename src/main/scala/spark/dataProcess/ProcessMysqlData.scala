@@ -27,14 +27,16 @@ import scala.collection.mutable.ArrayBuffer
 --executor-memory 1G \
 --num-executors 3 \
 --total-executor-cores 3 \
---files "/usr/local/userlib/conf/log4j-executor.properties" \
+--files "/usr/local/userlib/spark-2.2/conf/log4j-executor.properties" \
 --driver-java-options "-Dlog4j.debug=true -Dlog4j.configuration=log4j.properties" \
 --conf spark.memory.fraction=0.8 \
 --conf spark.memory.storageFraction=0.3 \
 --conf spark.speculation=true \
 --conf spark.speculation.interval=500ms \
 --conf spark.speculation.multiplier=3 \
---conf "spark.executor.extraJavaOptions=-Dlog4j.debug=true -Dlog4j.configuration=log4j-executor.properties -XX:+PrintGCDetails -Xloggc:/usr/local/userlib/spark-2.2/logs/executor_gc.log -XX:+PrintGCDateStamps -XX:+PrintHeapAtGC -XX:+UseConcMarkSweepGC -XX:+PrintTenuringDistribution -Xms600m -XX:NewRatio=1 -XX:+PrintCommandLineFlags -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/usr/local/userlib/spark-2.2/logs/executor_oom.hprof" \
+--conf spark.task.reaper.enabled=true \
+--conf spark.task.reaper.killTimeout=100s \
+--conf "spark.executor.extraJavaOptions=-Dlog4j.debug=true -Dlog4j.configuration=log4j-executor.properties -XX:+PrintGCDetails -Xloggc:/usr/local/userlib/spark-2.2/logs/executor_gc.log -XX:+PrintGCDateStamps -XX:+PrintHeapAtGC -XX:+UseG1GC -XX:+PrintTenuringDistribution -Xms400m -XX:+PrintCommandLineFlags -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/usr/local/userlib/spark-2.2/logs/executor_oom.hprof" \
 /usr/local/userlib/jars/bigdata.jar
   * feng
   * 18-10-9
@@ -50,10 +52,11 @@ object ProcessMysqlData extends Logging {
       .appName("ProcessMysqlData")
       .config("spark.streaming.stopGracefullyOnShutdown", "true")
       .config("spark.dynamicAllocation.enabled", "false")
-      .config("spark.streaming.kafka.maxRatePerPartition", 100)
+      .config("spark.streaming.kafka.maxRatePerPartition", 80)
       .config("spark.streaming.backpressure.enabled", "true")
       .config("spark.streaming.blockInterval", "3s")
       .config("spark.defalut.parallelism", "6")
+      .config("spark.locality.wait", "1s")
       .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
       .getOrCreate()
 
@@ -440,8 +443,8 @@ object ProcessMysqlData extends Logging {
 
   def executeAndCommit(ps: PreparedStatement, con: Connection) = {
     try {
-      ps.executeBatch()
-      con.commit()
+//      ps.executeBatch()
+//      con.commit()
     } catch {
       case e: SQLException =>
         logError(e.getMessage)

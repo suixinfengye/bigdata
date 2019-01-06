@@ -31,6 +31,10 @@
                     <artifactId>log4j</artifactId>
                     <groupId>log4j</groupId>
                 </exclusion>
+                <exclusion>
+                    <artifactId>kafka_2.11</artifactId>
+                    <groupId>org.apache.kafka</groupId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -106,6 +110,18 @@
             <artifactId>kafka_2.11</artifactId>
             <version>0.10.1.0</version>
         </dependency>-->
+        <!-- https://mvnrepository.com/artifact/org.apache.kafka/kafka -->
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka_2.11</artifactId>
+            <version>0.10.2.1</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.apache.kafka/kafka-clients -->
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-clients</artifactId>
+            <version>0.10.2.1</version>
+        </dependency>
 
 
 

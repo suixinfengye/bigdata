@@ -66,5 +66,40 @@ org.apache.phoenix.jdbc.PhoenixDriver.getConnectionQueryServices(PhoenixDriver.j
 org.apache.phoenix.jdbc.PhoenixEmbeddedDriver.createConnection(PhoenixEmbeddedDriver.java:150)
 ```
 
+# spark 运行卡住
+19/01/03 23:12:17 DEBUG Executor task launch worker for task 906 NetworkClient 413: Disconnecting from node 1 due to request timeout.
 
+19/01/03 23:12:17 DEBUG Executor task launch worker for task 906 NetworkClient 640: Sending metadata request {topics=[mysql-clusterd1.bigdata.movie_detail]} to node 0
+
+19/01/03 23:12:17 DEBUG Executor task launch worker for task 906 Metadata 180: Updated cluster metadata version 4 to Cluster(nodes = [192.168.0.107:9092 (id: 2 rack: null), 192.168.0.108:9092 (id: 1 rack: null), 192.168.0.101:9092 (id: 0 rack: null)], partitions = [Partition(topic = mysql-clusterd1.bigdata.movie_detail, partition = 0, leader = 1, replicas = [1,2,], isr = [1,2,]])
+
+19/01/03 23:12:18 DEBUG Executor task launch worker for task 906 NetworkClient 507: Error connecting to node 1 at 192.168.0.108:9092:
+
+19/01/03 23:12:18 DEBUG Executor task launch worker for task 906 Selector 345: Connection with /192.168.0.101 disconnected
+
+19/01/03 23:12:18 DEBUG Executor task launch worker for task 906 NetworkClient 625: Give up sending metadata request since no node is available
+
+https://stackoverflow.com/questions/41720656/strange-delays-in-spark-streaming
+caching the content of the partition read in memory.
+spark.streaming.kafka.consumer.cache.enabled to false
+reconnect.backoff.ms = 0
+reconnect.backoff.ms	The amount of time to wait before attempting to reconnect to a given host. This avoids repeatedly connecting to a host in a tight loop. This backoff applies to all requests sent by the consumer to the broker
+
+spark streaming 看看可不可以批量读取kafka topic,现在都是一条一条读,不好
+
+
+https://stackoverflow.com/questions/52723723/kafka-consumer-request-timeout
+在消费端配置,或者connect端
+Kafka Consumer 'request.timeout.ms'
+说是request.timeout.ms 40s太小,看起来不合理,不过到是找到了40s的原因,我倒是觉得应该减小这个值,不用等40s
+The root cause for disconnection was the fact that response for data request arrived from Kafka too late. i.e. after request.timeout.ms parameter which was set to default 40000 ms. The disconnection problem was fixed when I increased this value.
+
+request.timeout.ms	The configuration controls the maximum amount of time the client will wait for the response of a request. If the response is not received before the timeout elapses the client will resend the request if necessary or fail the request if retries are exhausted.
+
+https://www.stratio.com/blog/optimizing-spark-streaming-applications-apache-kafka/
+
+真正解决方法:
+https://issues.apache.org/jira/browse/SPARK-20780
+kafka版本问题
+修改kafka版本即可
 
