@@ -443,8 +443,8 @@ object ProcessMysqlData extends Logging {
 
   def executeAndCommit(ps: PreparedStatement, con: Connection) = {
     try {
-//      ps.executeBatch()
-//      con.commit()
+      ps.executeBatch()
+      con.commit()
     } catch {
       case e: SQLException =>
         logError(e.getMessage)

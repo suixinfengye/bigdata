@@ -92,6 +92,7 @@ cd /usr/local/userlib/spark-2.2/
 ./sbin/start-all.sh
 
 hdfs haadmin -getServiceState nn1
+hdfs getconf -confKey dfs.namenode.avoid.read.stale.datanode
 hbase-daemons.sh start regionserver
 hbase-daemon.sh stop regionserver RegionServer
 # phoenix

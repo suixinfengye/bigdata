@@ -1,0 +1,45 @@
+
+# Hadoop
+[](https://mp.weixin.qq.com/s?__biz=MzA5MTc0NTMwNQ==&mid=2650716244&idx=1&sn=8ae81c90633aa2deb010359782c7fa30&chksm=887da522bf0a2c34e1f4e1dd01cbed1007839cf226eb6984607fc33186a791ce1ad376ea0635&mpshare=1&scene=1&srcid=&pass_ticket=4GMBRspv7VZoP%2B4XbpwBpUc%2BhtGQ%2BqZuyRiMarCW4h0wzHuFkSshAIs0jmMVXXU6#rd)
+<property>
+  <name>dfs.datanode.sync.behind.writes</name>
+  <value>true</value>
+  <description>
+        If this configuration is enabled, the datanode will instruct the
+        operating system to enqueue all written data to the disk immediately
+        after it is written. This differs from the usual OS policy which
+        may wait for up to 30 seconds before triggering writeback.
+
+        This may improve performance for some workloads by smoothing the
+        IO profile for data written to disk.
+
+        If the Hadoop native libraries are not available, this configuration
+        has no effect.
+  </description>
+</property>
+
+<property>
+  <name>dfs.datanode.synconclose</name>
+  <value>true</value>
+</property>
+
+<property>
+  <name>dfs.namenode.avoid.read.stale.datanode</name>
+  <value>true</value>
+  <description>
+      Indicate whether or not to avoid reading from "stale" datanodes whose heartbeat messages
+      have not been received by the namenode for more than a specified time interval.
+      Stale datanodes will be moved to the end of the node list returned for reading.
+      See dfs.namenode.avoid.write.stale.datanode for a similar setting for writes.
+  </description>
+</property>
+
+<property>
+  <name>dfs.namenode.avoid.write.stale.datanode</name>
+  <value>true</value>
+</property>
+
+# habse
+越少HFile越利于read
+越多HFile越利于write
+只能优化read or write,Not both
