@@ -5,7 +5,7 @@ cd /home/feng/software/visualvm_142/
 
 cd /usr/local/userlib/conf/jvm
 jstatd -J-Djava.security.policy=/usr/local/userlib/conf/jvm/jstatd.all.policy -J-Djava.rmi.server.hostname=192.168.0.101
- -J-Djava.rmi.server.logCalls=true
+ -J-Djava.rmi.server.logCalls=true &
 jstatd -J-Djava.security.policy=/usr/local/userlib/conf/jvm/jstatd.all.policy -J-Djava.rmi.server.hostname=192.168.0.107
  -J-Djava.rmi.server.logCalls=true
 jstatd -J-Djava.security.policy=/usr/local/userlib/conf/jvm/jstatd.all.policy -J-Djava.rmi.server.hostname=192.168.0.108
