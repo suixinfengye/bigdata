@@ -6,7 +6,6 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.hbase.HBaseConfiguration
 import org.apache.hadoop.hbase.mapred.TableOutputFormat
 import org.apache.hadoop.mapred.JobConf
-import org.apache.spark.sql.SparkSession
 import org.slf4j.LoggerFactory
 
 /**
@@ -20,16 +19,27 @@ object CommonUtil {
   /**
     * 生成Hbase config对象
     *
-    * @param spark
     * @param tableName
     * @return
     */
-  def getWriteHbaseConfig(spark: SparkSession, tableName: String): JobConf = {
+  def getWriteHbaseConfig(tableName: String): JobConf = {
     val conf = getHbaseConfig
     val jobConf = new JobConf(conf, this.getClass)
     jobConf.setOutputFormat(classOf[TableOutputFormat])
     jobConf.set(TableOutputFormat.OUTPUT_TABLE, tableName)
     jobConf
+  }
+
+  /**
+    * 生成Hbase config对象
+    *
+    * @param tableName
+    * @return
+    */
+  def getReadHbaseConfig(tableName: String): Configuration = {
+    val conf = getHbaseConfig
+    conf.set(org.apache.hadoop.hbase.mapreduce.TableInputFormat.INPUT_TABLE, tableName)
+    conf
   }
 
   def getHbaseConfig: Configuration = {

@@ -155,7 +155,7 @@ object StoreMovieEssay extends Logging {
           val reviewList: List[Review] = r.filter(list => list.nonEmpty).reduce(_ ++ _)
           logInfo("save reviewList to hbase:" + reviewList.size)
           acc.add(reviewList.size)
-          val jobConf = CommonUtil.getWriteHbaseConfig(spark, getTableName)
+          val jobConf = CommonUtil.getWriteHbaseConfig(getTableName)
           spark.sparkContext.parallelize(reviewList).map(converToPut).saveAsHadoopDataset(jobConf)
         }
         logInfo("rdd[list[list[Review]]] is empty" + r.id)

@@ -28,16 +28,20 @@ object CommonTest {
     //    testConfig
     //    testDateFormat
 //    getCharset
-    val list = "dfdf".split("---==---")
-    list.foreach { item =>
-      println("___")
-    }
-    whereClass
 
-    val buf = scala.collection.mutable.ListBuffer.empty[Int]
-    for (i <- 0 to 20000000) {
-      buf += i
-    }
+    val s = "10001418-5584520"
+    val keys = s.split("-")
+    print(keys(0)+" "+keys(1))
+//    val list = "dfdf".split("---==---")
+//    list.foreach { item =>
+//      println("___")
+//    }
+//    whereClass
+//
+//    val buf = scala.collection.mutable.ListBuffer.empty[Int]
+//    for (i <- 0 to 20000000) {
+//      buf += i
+//    }
   }
 
   import org.junit.Test
