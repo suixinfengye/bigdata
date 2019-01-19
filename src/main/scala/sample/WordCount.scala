@@ -22,18 +22,23 @@ import org.slf4j.LoggerFactory
 
 object WordCount {
   val logger = LoggerFactory.getLogger(this.getClass)
+
   def main(args: Array[String]) {
     val spark = SparkSession
       .builder()
       .master("local")
       .appName("WordCount")
       .getOrCreate()
-//    val file = spark.sparkContext.textFile("hdfs://localhost:9000/test/common")
-//    file.flatMap(_.split(" ")).map((_,1)).reduceByKey(_+_).collect().foreach(println(_))
+    //    val file = spark.sparkContext.textFile("hdfs://localhost:9000/test/common")
+    //    file.flatMap(_.split(" ")).map((_,1)).reduceByKey(_+_).collect().foreach(println(_))
 
-
-
-    spark.sparkContext.makeRDD(List(1,2,3,4,5,6)).foreach(t=>logger.info("---------foreach info-------------"))
+    val rawData = spark.sparkContext.parallelize(Seq(
+      ("1627814", "55555"),
+      ("1627814", "66666"),
+      ("dd", "77777")
+    )).map(t=>(t._1,t._2))
+    rawData.reduceByKey(_+_).collect().foreach(print(_))
+    spark.sparkContext.makeRDD(List(1, 2, 3, 4, 5, 6)).foreach(t => logger.info("---------foreach info-------------"))
     logger.info("-----------info--------sdfhdhhd")
     logger.error("------------error-------sdfhdhhd")
     print("-----------print--------sdfhdhhd")

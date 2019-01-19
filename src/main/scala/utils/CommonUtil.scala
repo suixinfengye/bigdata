@@ -6,6 +6,7 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.hbase.HBaseConfiguration
 import org.apache.hadoop.hbase.mapred.TableOutputFormat
 import org.apache.hadoop.mapred.JobConf
+import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.slf4j.LoggerFactory
 
 /**
@@ -94,6 +95,16 @@ object CommonUtil {
     mysqlUrl
   }
 
+  def readPhoenixTable(spark: SparkSession, tableName: String): DataFrame = {
+    val rdf = spark.read
+      .format("jdbc")
+      .option("driver", "org.apache.phoenix.jdbc.PhoenixDriver")
+      .option("url", getPhoenixurl)
+      .option("dbtable", tableName)
+      .load()
+    rdf
+  }
+
   def getPhoenixConnection: Connection = {
     var cc: Connection = null
     val driver = CommomConfig.Phoenix_DRIVER
@@ -125,14 +136,14 @@ object CommonUtil {
     phoenixUrl
   }
 
-//  def getPhoenixZKurl: String = {
-//    var phoenixUrl = CommomConfig.Phoenix_ZK_URL
-//    if (CommomConfig.isTest) {
-//      phoenixUrl = CommomConfig.ZK_URL_TEST
-//    }
-//    logger.info("Phoenix_URL is : " + phoenixUrl)
-//    phoenixUrl
-//  }
+  //  def getPhoenixZKurl: String = {
+  //    var phoenixUrl = CommomConfig.Phoenix_ZK_URL
+  //    if (CommomConfig.isTest) {
+  //      phoenixUrl = CommomConfig.ZK_URL_TEST
+  //    }
+  //    logger.info("Phoenix_URL is : " + phoenixUrl)
+  //    phoenixUrl
+  //  }
 
   /**
     * 设置当前为测试环境
