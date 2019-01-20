@@ -7,7 +7,7 @@ import org.apache.hadoop.hbase.io.ImmutableBytesWritable
 import org.apache.hadoop.hbase.mapreduce.TableInputFormat
 import org.apache.hadoop.hbase.util.Bytes
 import org.apache.spark.internal.Logging
-import org.apache.spark.sql.types.{StringType, StructField, StructType}
+import org.apache.spark.sql.types.{DoubleType, StringType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 import spark.dataProcess.ProcessMysqlData.logInfo
 import spark.dto.Review
@@ -15,16 +15,16 @@ import utils.{AnsjUtils, CommonUtil, MysqlUtil}
 
 /**
   * https://my.oschina.net/uchihamadara/blog/2032481
-  * ./bin/spark-submit \
-  * --class spark.analysis.MovieKeyWords \
-  * --master spark://spark1:7077 \
-  * --executor-memory 1G \
-  * --num-executors 2 \
-  * --total-executor-cores 2 \
-  * --files "/usr/local/userlib/spark-2.2/conf/log4j-executor.properties" \
-  * --driver-java-options "-Dlog4j.debug=true -Dlog4j.configuration=log4j.properties" \
-  * --conf "spark.executor.extraJavaOptions=-Dlog4j.debug=true -Dlog4j.configuration=log4j-executor.properties -XX:+PrintGCDetails -Xloggc:/usr/local/userlib/spark-2.2/logs/executor_gc.log -XX:+PrintGCDateStamps -XX:+PrintHeapAtGC -XX:+UseG1GC -XX:+PrintTenuringDistribution -Xms400m -XX:+PrintCommandLineFlags -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/usr/local/userlib/spark-2.2/logs/executor_oom.hprof" \
-  * /usr/local/userlib/jars/bigdata.jar
+./bin/spark-submit \
+--class spark.analysis.MovieKeyWords \
+--master spark://spark1:7077 \
+--executor-memory 1G \
+--num-executors 3 \
+--total-executor-cores 3 \
+--files "/usr/local/userlib/spark-2.2/conf/log4j-executor.properties" \
+--driver-java-options "-Dlog4j.debug=true -Dlog4j.configuration=log4j.properties" \
+--conf "spark.executor.extraJavaOptions=-Dlog4j.debug=true -Dlog4j.configuration=log4j-executor.properties -XX:+PrintGCDetails -Xloggc:/usr/local/userlib/spark-2.2/logs/executor_gc.log -XX:+PrintGCDateStamps -XX:+PrintHeapAtGC -XX:+UseG1GC -XX:+PrintTenuringDistribution -Xms400m -XX:+PrintCommandLineFlags -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/usr/local/userlib/spark-2.2/logs/executor_oom.hprof" \
+/usr/local/userlib/jars/bigdata.jar
   * feng
   * 19-1-10
   */
@@ -36,13 +36,23 @@ object MovieKeyWords extends Logging {
       .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
       .getOrCreate()
 
-    computeMovieKeyWords(spark)
-    readComment(spark)
+    val reviewDF = readReview(spark)
+    val commentDF = readComment(spark)
+
+    computeMovieKeyWords(spark, reviewDF)
+    computeMovieKeyWords(spark, commentDF)
+    val unionDF = reviewDF.join(commentDF, "movieid")
+    computeMovieKeyWords(spark, unionDF)
 
     spark.stop()
   }
 
-  def computeMovieKeyWords(spark: SparkSession): Unit = {
+  /**
+    * 读取 影评
+    *
+    * @param spark
+    */
+  def readReview(spark: SparkSession): DataFrame = {
     import spark.implicits._
     val conf = CommonUtil.getReadHbaseConfig("review")
     val hbaseRDD = spark.sparkContext.newAPIHadoopRDD(conf, classOf[TableInputFormat], classOf[ImmutableBytesWritable], classOf[Result])
@@ -63,20 +73,11 @@ object MovieKeyWords extends Logging {
       case (movieid: String, contents: String) =>
         Row(movieid, contents)
     }
-    val schema = StructType(Array(StructField("moiveid", StringType, false), StructField("content", StringType, false)))
+    val schema = StructType(Array(StructField("movieid", StringType, false), StructField("content", StringType, false)))
     val reveiwDF = spark.createDataFrame(movieid2ReviewsRDD, schema)
-
-    val ansj = new AnsjUtils
-    val bansj = spark.sparkContext.broadcast(ansj)
-    val convert = reveiwDF.map {
-      case Row(movieid: String, content: String) => {
-        val ansjInstance = bansj.value
-        val keyWords = ansjInstance.getKeywords(content).toString
-        (movieid, keyWords)
-      }
-    }
-    convert.printSchema()
-    convert.take(10).foreach(print(_))
+    reveiwDF.printSchema()
+    reveiwDF.take(10).foreach(print(_))
+    reveiwDF
   }
 
   /**
@@ -86,17 +87,30 @@ object MovieKeyWords extends Logging {
     * @return
     */
   def readComment(spark: SparkSession): DataFrame = {
+    import spark.implicits._
     val commentDF = CommonUtil.readPhoenixTable(spark, "movie_essay")
-//    commentDF.printSchema()
-//    commentDF.show()
-
-//    commentDF.select("MOVIEID","COMMENT").groupBy("MOVIEID").agg("MOVIEID",)
-//    commentDF
-
     commentDF.createOrReplaceTempView("essaytmp")
-    spark.sql("select MOVIEID,aggComments(COMMENT) from essaytmp group by MOVIEID")
+    //     定义和注册自定义函数
+    spark.udf.register("aggComments", new AggComments)
+    val movieCommentDF: DataFrame = spark.sql("select MOVIEID as movieid, aggComments(COMMENT) as content from essaytmp " +
+      "group by MOVIEID")
+    movieCommentDF.take(10).foreach(print(_))
+    movieCommentDF.show()
+    movieCommentDF
+  }
 
-
-
+  def computeMovieKeyWords(spark: SparkSession, df: DataFrame): Unit = {
+    import spark.implicits._
+    val ansj = new AnsjUtils
+    val bansj = spark.sparkContext.broadcast(ansj)
+    val convert = df.map {
+      case Row(movieid: String, content: String) => {
+        val ansjInstance = bansj.value
+        val keyWords = ansjInstance.getKeywords(content).toString
+        (movieid, keyWords)
+      }
+    }
+    convert.printSchema()
+    convert.take(10).foreach(print(_))
   }
 }
