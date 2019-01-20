@@ -22,8 +22,14 @@ import utils.{AnsjUtils, CommonUtil, MysqlUtil}
 --num-executors 3 \
 --total-executor-cores 3 \
 --files "/usr/local/userlib/spark-2.2/conf/log4j-executor.properties" \
---driver-java-options "-Dlog4j.debug=true -Dlog4j.configuration=log4j.properties" \
---conf "spark.executor.extraJavaOptions=-Dlog4j.debug=true -Dlog4j.configuration=log4j-executor.properties -XX:+PrintGCDetails -Xloggc:/usr/local/userlib/spark-2.2/logs/executor_gc.log -XX:+PrintGCDateStamps -XX:+PrintHeapAtGC -XX:+UseG1GC -XX:+PrintTenuringDistribution -Xms400m -XX:+PrintCommandLineFlags -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/usr/local/userlib/spark-2.2/logs/executor_oom.hprof" \
+--driver-java-options "-Dlog4j.debug=true -Dlog4j.configuration=log4j.properties -XX:+HeapDumpOnOutOfMemoryError
+-XX:HeapDumpPath=/usr/local/userlib/spark-2.2/logs/driver_oom.hprof
+-XX:+PrintGCDetails -Xloggc:/usr/local/userlib/spark-2.2/logs/driver_gc.log -XX:+PrintGCDateStamps -XX:+PrintHeapAtGC
+-XX:+PrintGCApplicationConcurrentTime -XX:+PrintGCApplicationStoppedTime" \
+--conf "spark.executor.extraJavaOptions=-Dlog4j.debug=true -Dlog4j.configuration=log4j-executor.properties -XX:+PrintGCDetails
+-Xloggc:/usr/local/userlib/spark-2.2/logs/executor_gc.log -XX:+PrintGCDateStamps -XX:+PrintHeapAtGC -XX:+UseG1GC
+-XX:+PrintTenuringDistribution -Xms400m -XX:+PrintCommandLineFlags -XX:+HeapDumpOnOutOfMemoryError
+-XX:HeapDumpPath=/usr/local/userlib/spark-2.2/logs/executor_oom.hprof" \
 /usr/local/userlib/jars/bigdata.jar
   * feng
   * 19-1-10
