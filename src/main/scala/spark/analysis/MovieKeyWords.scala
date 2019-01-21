@@ -16,22 +16,22 @@ import utils.{AnsjUtils, CommonUtil, MysqlUtil}
 
 /**
   * https://my.oschina.net/uchihamadara/blog/2032481
-./bin/spark-submit \
---class spark.analysis.MovieKeyWords \
---master spark://spark1:7077 \
---executor-memory 1G \
---num-executors 3 \
---total-executor-cores 3 \
---files "/usr/local/userlib/spark-2.2/conf/log4j-executor.properties" \
---driver-java-options "-Dlog4j.debug=true -Dlog4j.configuration=log4j.properties -XX:+HeapDumpOnOutOfMemoryError
--XX:HeapDumpPath=/usr/local/userlib/spark-2.2/logs/driver_oom.hprof
--XX:+PrintGCDetails -Xloggc:/usr/local/userlib/spark-2.2/logs/driver_gc.log -XX:+PrintGCDateStamps -XX:+PrintHeapAtGC
--XX:+PrintGCApplicationConcurrentTime -XX:+PrintGCApplicationStoppedTime" \
---conf "spark.executor.extraJavaOptions=-Dlog4j.debug=true -Dlog4j.configuration=log4j-executor.properties -XX:+PrintGCDetails
--Xloggc:/usr/local/userlib/spark-2.2/logs/executor_gc.log -XX:+PrintGCDateStamps -XX:+PrintHeapAtGC -XX:+UseG1GC
--XX:+PrintTenuringDistribution -Xms400m -XX:+PrintCommandLineFlags -XX:+HeapDumpOnOutOfMemoryError
--XX:HeapDumpPath=/usr/local/userlib/spark-2.2/logs/executor_oom.hprof" \
-/usr/local/userlib/jars/bigdata.jar
+  * ./bin/spark-submit \
+  * --class spark.analysis.MovieKeyWords \
+  * --master spark://spark1:7077 \
+  * --executor-memory 1G \
+  * --num-executors 3 \
+  * --total-executor-cores 3 \
+  * --files "/usr/local/userlib/spark-2.2/conf/log4j-executor.properties" \
+  * --driver-java-options "-Dlog4j.debug=true -Dlog4j.configuration=log4j.properties -XX:+HeapDumpOnOutOfMemoryError
+  * -XX:HeapDumpPath=/usr/local/userlib/spark-2.2/logs/driver_oom.hprof
+  * -XX:+PrintGCDetails -Xloggc:/usr/local/userlib/spark-2.2/logs/driver_gc.log -XX:+PrintGCDateStamps -XX:+PrintHeapAtGC
+  * -XX:+PrintGCApplicationConcurrentTime -XX:+PrintGCApplicationStoppedTime" \
+  * --conf "spark.executor.extraJavaOptions=-Dlog4j.debug=true -Dlog4j.configuration=log4j-executor.properties -XX:+PrintGCDetails
+  * -Xloggc:/usr/local/userlib/spark-2.2/logs/executor_gc.log -XX:+PrintGCDateStamps -XX:+PrintHeapAtGC -XX:+UseG1GC
+  * -XX:+PrintTenuringDistribution -Xms400m -XX:+PrintCommandLineFlags -XX:+HeapDumpOnOutOfMemoryError
+  * -XX:HeapDumpPath=/usr/local/userlib/spark-2.2/logs/executor_oom.hprof" \
+  * /usr/local/userlib/jars/bigdata.jar
   * feng
   * 19-1-10
   */
@@ -40,6 +40,11 @@ object MovieKeyWords extends Logging {
     val spark = SparkSession
       .builder()
       .appName("MovieKeyWords")
+      //determines the 'default number of partitions in RDDs returned by transformations like join,
+      //reduceByKey, and parallelize when not set by user
+      .config("spark.defalut.parallelism", "6") //rdd
+      //Configures the number of partitions to use when shuffling data for joins or aggregations.
+      .config("spark.sql.shuffle.partitions", "200") //dataframe
       .config("spark.locality.wait", "1s")
       .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
       .getOrCreate()
@@ -50,6 +55,8 @@ object MovieKeyWords extends Logging {
     computeMovieKeyWords(spark, reviewDF)
     computeMovieKeyWords(spark, commentDF)
 
+    //这一步可以试试提高并行度
+    //    val unionDF = reviewDF.repartition(24).join(commentDF.repartition(24))
     val unionDF = reviewDF.join(commentDF, "movieid")
     computeMovieKeyWords(spark, unionDF)
 

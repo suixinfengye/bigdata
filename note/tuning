@@ -62,3 +62,19 @@ rdd.partitions().size()
 Whenever you have the power to make the decision about how data is stored on disk,
 use an extensible binary format like Avro, Parquet, Thrif
 
+
+内存调整
+关于spark.memory.fraction  和 spark.memory.storageFraction
+因为有persist 又有join 不好设置值
+
+避免包装对象
+The fastutil library provides convenient collection classes for primitive types that are compatible with the Java standard library
+
+避免内部对象
+
+数值/枚举优于字符串
+
+开启指针压缩
+If you have less than 32 GB of RAM, set the JVM flag -XX:+UseCompressedOops to make pointers be four bytes instead of eight.
+You can add these options in spark-env.sh.
+
