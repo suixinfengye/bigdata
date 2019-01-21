@@ -9,6 +9,7 @@ import org.apache.hadoop.hbase.util.Bytes
 import org.apache.spark.internal.Logging
 import org.apache.spark.sql.types.{DoubleType, StringType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
+import org.apache.spark.storage.StorageLevel
 import spark.dataProcess.ProcessMysqlData.logInfo
 import spark.dto.Review
 import utils.{AnsjUtils, CommonUtil, MysqlUtil}
@@ -39,6 +40,7 @@ object MovieKeyWords extends Logging {
     val spark = SparkSession
       .builder()
       .appName("MovieKeyWords")
+      .config("spark.locality.wait", "1s")
       .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
       .getOrCreate()
 
@@ -47,6 +49,7 @@ object MovieKeyWords extends Logging {
 
     computeMovieKeyWords(spark, reviewDF)
     computeMovieKeyWords(spark, commentDF)
+
     val unionDF = reviewDF.join(commentDF, "movieid")
     computeMovieKeyWords(spark, unionDF)
 
@@ -80,7 +83,7 @@ object MovieKeyWords extends Logging {
         Row(movieid, contents)
     }
     val schema = StructType(Array(StructField("movieid", StringType, false), StructField("content", StringType, false)))
-    val reveiwDF = spark.createDataFrame(movieid2ReviewsRDD, schema)
+    val reveiwDF = spark.createDataFrame(movieid2ReviewsRDD, schema).persist(StorageLevel.MEMORY_AND_DISK_SER)
     reveiwDF.printSchema()
     reveiwDF.take(10).foreach(print(_))
     reveiwDF
@@ -99,7 +102,8 @@ object MovieKeyWords extends Logging {
     //     定义和注册自定义函数
     spark.udf.register("aggComments", new AggComments)
     val movieCommentDF: DataFrame = spark.sql("select MOVIEID as movieid, aggComments(COMMENT) as content from essaytmp " +
-      "group by MOVIEID")
+      "group by MOVIEID").persist(StorageLevel.MEMORY_AND_DISK_SER)
+
     movieCommentDF.take(10).foreach(print(_))
     movieCommentDF.show()
     movieCommentDF

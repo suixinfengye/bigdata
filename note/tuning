@@ -43,3 +43,22 @@
 越少HFile越利于read
 越多HFile越利于write
 只能优化read or write,Not both
+
+#spark sql
+dynamic resource allocation
+
+
+## https://blog.cloudera.com/blog/2015/03/how-to-tune-your-apache-spark-jobs-part-1/
+
+Avoid reduceByKey When the input and output value types are different
+better to use aggregateByKey
+
+Avoid the flatMap-join-groupBy pattern
+use cogroup
+
+有观察到除了第一个job 本地化级别是any之外,其余都是process_local/node,但是task就只有一个,需要看看是不是repartition
+rdd.partitions().size()
+
+Whenever you have the power to make the decision about how data is stored on disk,
+use an extensible binary format like Avro, Parquet, Thrif
+
