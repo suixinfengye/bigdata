@@ -44,9 +44,13 @@
 越多HFile越利于write
 只能优化read or write,Not both
 
+# Tuning and Debugging in Apache Spark
+https://conferences.oreilly.com/strata/big-data-conference-ca-2015/public/schedule/detail/38632
+Filter input earlier in the program rather than later
+
 #spark sql
 dynamic resource allocation
-
+启用动态分配就不用设置memory和core?
 
 ## https://blog.cloudera.com/blog/2015/03/how-to-tune-your-apache-spark-jobs-part-1/
 
@@ -77,4 +81,20 @@ The fastutil library provides convenient collection classes for primitive types 
 开启指针压缩
 If you have less than 32 GB of RAM, set the JVM flag -XX:+UseCompressedOops to make pointers be four bytes instead of eight.
 You can add these options in spark-env.sh.
+
+
+#spark streaming
+https://databricks.com/session/the-top-five-mistakes-made-when-writing-streaming-applications
+client模式下,client die,driver die
+cluster模式下,client die, driver don't die
+
+receiver based sources的数据,要启用checkpoint和wal:spark.streaing.receiver.writeAheadLog.enable
+
+# Everyday I’m Shuffling - Tips for Writing Better Spark Programs
+https://conferences.oreilly.com/strata/big-data-conference-ca-2015/public/schedule/detail/38391
+reduceByKey, aggregateByKey, foldByKey, and combineByKey,  preferred over groupByKey
+
+jmc
+spark.executor.extraJavaOptions    -XX:+UnlockCommercialFeatures -XX:+FlightRecorder -XX:StartFlightRecording=filename=executor.jfr,dumponexit=true,settings=profile
+
 
