@@ -6,6 +6,7 @@ import org.apache.hadoop.hbase.client.Result
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable
 import org.apache.hadoop.hbase.mapreduce.TableInputFormat
 import org.apache.hadoop.hbase.util.Bytes
+import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.internal.Logging
 import org.apache.spark.sql.types.{DoubleType, StringType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
@@ -14,27 +15,27 @@ import spark.dataProcess.ProcessMysqlData.logInfo
 import spark.dto.Review
 import utils.{AnsjUtils, CommonUtil, MysqlUtil}
 
+//./bin/spark-submit \
+//--class spark.analysis.MovieKeyWords \
+//--master spark://spark1:7077 \
+//--executor-memory 1G \
+//--num-executors 3 \
+//--total-executor-cores 3 \
+//--conf spark.speculation=true \
+//--conf spark.speculation.interval=500ms \
+//--conf spark.speculation.multiplier=3 \
+//--files "/usr/local/userlib/spark-2.2/conf/log4j-executor.properties" \
+//--driver-java-options "-Dlog4j.debug=true -Dlog4j.configuration=log4j.properties -XX:+HeapDumpOnOutOfMemoryError
+//-XX:HeapDumpPath=/usr/local/userlib/spark-2.2/logs/driver_oom.hprof
+//-XX:+PrintGCDetails -Xloggc:/usr/local/userlib/spark-2.2/logs/driver_gc.log -XX:+PrintGCDateStamps -XX:+PrintHeapAtGC
+//-XX:+PrintGCApplicationConcurrentTime -XX:+PrintGCApplicationStoppedTime -XX:+UseCompressedOops" \
+//--conf "spark.executor.extraJavaOptions=-Dlog4j.debug=true -Dlog4j.configuration=log4j-executor.properties -XX:+PrintGCDetails
+//-Xloggc:/usr/local/userlib/spark-2.2/logs/executor_gc.log -XX:+PrintGCDateStamps -XX:+PrintHeapAtGC -XX:+UseG1GC
+//-XX:+PrintTenuringDistribution -Xms400m -XX:+PrintCommandLineFlags -XX:+HeapDumpOnOutOfMemoryError
+//-XX:HeapDumpPath=/usr/local/userlib/spark-2.2/logs/executor_oom.hprof -XX:+UseCompressedOops" \
+///usr/local/userlib/jars/bigdata.jar
 /**
   * https://my.oschina.net/uchihamadara/blog/2032481
-  * ./bin/spark-submit \
-  * --class spark.analysis.MovieKeyWords \
-  * --master spark://spark1:7077 \
-  * --executor-memory 1G \
-  * --num-executors 3 \
-  * --total-executor-cores 3 \
-  * --conf spark.speculation=true \
-  * --conf spark.speculation.interval=500ms \
-  * --conf spark.speculation.multiplier=3 \
-  * --files "/usr/local/userlib/spark-2.2/conf/log4j-executor.properties" \
-  * --driver-java-options "-Dlog4j.debug=true -Dlog4j.configuration=log4j.properties -XX:+HeapDumpOnOutOfMemoryError
-  * -XX:HeapDumpPath=/usr/local/userlib/spark-2.2/logs/driver_oom.hprof
-  * -XX:+PrintGCDetails -Xloggc:/usr/local/userlib/spark-2.2/logs/driver_gc.log -XX:+PrintGCDateStamps -XX:+PrintHeapAtGC
-  * -XX:+PrintGCApplicationConcurrentTime -XX:+PrintGCApplicationStoppedTime" \
-  * --conf "spark.executor.extraJavaOptions=-Dlog4j.debug=true -Dlog4j.configuration=log4j-executor.properties -XX:+PrintGCDetails
-  * -Xloggc:/usr/local/userlib/spark-2.2/logs/executor_gc.log -XX:+PrintGCDateStamps -XX:+PrintHeapAtGC -XX:+UseG1GC
-  * -XX:+PrintTenuringDistribution -Xms400m -XX:+PrintCommandLineFlags -XX:+HeapDumpOnOutOfMemoryError
-  * -XX:HeapDumpPath=/usr/local/userlib/spark-2.2/logs/executor_oom.hprof" \
-  * /usr/local/userlib/jars/bigdata.jar
   * feng
   * 19-1-10
   */
@@ -47,29 +48,33 @@ object MovieKeyWords extends Logging {
       //reduceByKey, and parallelize when not set by user
       .config("spark.defalut.parallelism", "9") //rdd
       //Configures the number of partitions to use when shuffling data for joins or aggregations.
-//      .config("spark.sql.shuffle.partitions", "200") //dataframe
+      //      .config("spark.sql.shuffle.partitions", "200") //dataframe
       //SparkSQL自适应框架可以通过设置shuffle partition的上下限区间，在这个区间内对不同作业不同阶段的reduce个数进行动态调整
       //通过区间的设置，一方面可以大大减少调优的成本(不需要找到一个固定值)，另一方面同一个作业内部不同reduce阶段的reduce个数也能动态调整
       //https://databricks.com/session/an-adaptive-execution-engine-for-apache-spark-sql
       .config("spark.sql.adaptive.enabled", "true")
       .config("spark.sql.adaptive.minNumPostShufflePartitions", 10)
       .config("spark.sql.adaptive.maxNumPostShufflePartitions", 1000)
-      .config("spark.sql.adaptive.shuffle.targetPostShuffleRowCount", 1000)
+      .config("spark.sql.adaptive.shuffle.targetPostShuffleRowCount", 1000) //100-1000
       .config("spark.locality.wait", "1s")
       .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
       .getOrCreate()
 
+
+    val ansj = new AnsjUtils
+    val bansj = spark.sparkContext.broadcast(ansj)
+
     val reviewDF = readReview(spark)
     val commentDF = readComment(spark)
 
-    computeMovieKeyWords(spark, reviewDF)
-    computeMovieKeyWords(spark, commentDF)
+    computeMovieKeyWords(spark, reviewDF,bansj)
+    computeMovieKeyWords(spark, commentDF,bansj)
 
     //这一步可以试试提高并行度
     //    val unionDF = reviewDF.repartition(24).join(commentDF.repartition(24))
     //用shuffle hash join的情形是,key平均分配,且key数量超过并行度
     val unionDF = reviewDF.join(commentDF, "movieid")
-    computeMovieKeyWords(spark, unionDF)
+    computeMovieKeyWords(spark, unionDF,bansj)
 
     spark.stop()
   }
@@ -102,7 +107,7 @@ object MovieKeyWords extends Logging {
     }
     val schema = StructType(Array(StructField("movieid", StringType, false), StructField("content", StringType, false)))
     val reveiwDF = spark.createDataFrame(movieid2ReviewsRDD, schema).persist(StorageLevel.MEMORY_AND_DISK_SER)
-    reveiwDF.printSchema()
+//    reveiwDF.printSchema()
     reveiwDF.take(10).foreach(print(_))
     reveiwDF
   }
@@ -122,15 +127,14 @@ object MovieKeyWords extends Logging {
     val movieCommentDF: DataFrame = spark.sql("select MOVIEID as movieid, aggComments(COMMENT) as content from essaytmp " +
       "group by MOVIEID").persist(StorageLevel.MEMORY_AND_DISK_SER)
 
-    movieCommentDF.take(10).foreach(print(_))
+//    movieCommentDF.take(10).foreach(print(_))
     movieCommentDF.show()
     movieCommentDF
   }
 
-  def computeMovieKeyWords(spark: SparkSession, df: DataFrame): Unit = {
+  def computeMovieKeyWords(spark: SparkSession, df: DataFrame, bansj: Broadcast[AnsjUtils]): Unit = {
     import spark.implicits._
-    val ansj = new AnsjUtils
-    val bansj = spark.sparkContext.broadcast(ansj)
+
     val convert = df.map {
       case Row(movieid: String, content: String) => {
         val ansjInstance = bansj.value

@@ -82,6 +82,11 @@ The fastutil library provides convenient collection classes for primitive types 
 If you have less than 32 GB of RAM, set the JVM flag -XX:+UseCompressedOops to make pointers be four bytes instead of eight.
 You can add these options in spark-env.sh.
 
+https://data-flair.training/blogs/spark-sql-performance-tuning/
+i. spark.sql.codegen
+ii. spark.sql.inMemorycolumnarStorage.compressed
+iii. spark.sql.inMemoryColumnarStorage.batchSize
+iv. spark.sql.parquet.compression.codec
 
 #spark streaming
 https://databricks.com/session/the-top-five-mistakes-made-when-writing-streaming-applications
@@ -97,4 +102,16 @@ reduceByKey, aggregateByKey, foldByKey, and combineByKey,  preferred over groupB
 jmc
 spark.executor.extraJavaOptions    -XX:+UnlockCommercialFeatures -XX:+FlightRecorder -XX:StartFlightRecording=filename=executor.jfr,dumponexit=true,settings=profile
 
+https://databricks.com/session/scalable-monitoring-using-prometheus-with-apache-spark-clusters
+1.run explain plan:df.explain / spark ui
+2.interpret plan
+3.tune plan
 
+A Deep Dive into the Catalyst Optimizer (Herman van Hovell)
+https://www.youtube.com/watch?v=GDeePbbCz2g
+
+A Deep Dive into the Catalyst Optimizer-Hands on Lab
+https://databricks.com/session/a-deep-dive-into-the-catalyst-optimizer-hands-on-lab?utm_campaign=Spark%20Summit%20EU%202016&utm_content=34985851&utm_medium=social&utm_source=twitter
+
+
+https://kernel.rubikloud.com/data-platform/how-to-improve-spark-sql-query-times/
