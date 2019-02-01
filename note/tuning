@@ -106,6 +106,13 @@ https://databricks.com/session/scalable-monitoring-using-prometheus-with-apache-
 1.run explain plan:df.explain / spark ui
 2.interpret plan
 3.tune plan
+4.spark.sql.autoBroadcastJoinThreshold
+5.broadcastJoin hint
+6.at least one equal predicate in join condition
+    O(n):t1 join t2 on t1.id=t2.id and t1.a<t2.a
+    O(n^2):t1 join t2 on t1.a<t2.a
+7.spark.memory.offHeap.enabled spark.memory.offHeap.size
+8. for file-base data sources. creating partitioning/bucketing if possible
 
 A Deep Dive into the Catalyst Optimizer (Herman van Hovell)
 https://www.youtube.com/watch?v=GDeePbbCz2g
@@ -115,3 +122,6 @@ https://databricks.com/session/a-deep-dive-into-the-catalyst-optimizer-hands-on-
 
 
 https://kernel.rubikloud.com/data-platform/how-to-improve-spark-sql-query-times/
+
+https://www.youtube.com/watch?v=dv7IIYuQOXI
+Bucketing in Spark SQL 2 3 with Jacek Laskowski
