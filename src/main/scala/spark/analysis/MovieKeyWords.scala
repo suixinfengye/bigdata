@@ -28,11 +28,11 @@ import utils.{AnsjUtils, CommonUtil, MysqlUtil}
 //--driver-java-options "-Dlog4j.debug=true -Dlog4j.configuration=log4j.properties -XX:+HeapDumpOnOutOfMemoryError
 //-XX:HeapDumpPath=/usr/local/userlib/spark-2.2/logs/driver_oom.hprof
 //-XX:+PrintGCDetails -Xloggc:/usr/local/userlib/spark-2.2/logs/driver_gc.log -XX:+PrintGCDateStamps -XX:+PrintHeapAtGC
-//-XX:+PrintGCApplicationConcurrentTime -XX:+PrintGCApplicationStoppedTime -XX:+UseCompressedOops" \
+//-XX:+PrintGCApplicationConcurrentTime -XX:+PrintGCApplicationStoppedTime" \
 //--conf "spark.executor.extraJavaOptions=-Dlog4j.debug=true -Dlog4j.configuration=log4j-executor.properties -XX:+PrintGCDetails
 //-Xloggc:/usr/local/userlib/spark-2.2/logs/executor_gc.log -XX:+PrintGCDateStamps -XX:+PrintHeapAtGC -XX:+UseG1GC
 //-XX:+PrintTenuringDistribution -Xms400m -XX:+PrintCommandLineFlags -XX:+HeapDumpOnOutOfMemoryError
-//-XX:HeapDumpPath=/usr/local/userlib/spark-2.2/logs/executor_oom.hprof -XX:+UseCompressedOops" \
+//-XX:HeapDumpPath=/usr/local/userlib/spark-2.2/logs/executor_oom.hprof" \
 ///usr/local/userlib/jars/bigdata.jar
 /**
   * https://my.oschina.net/uchihamadara/blog/2032481
@@ -60,21 +60,20 @@ object MovieKeyWords extends Logging {
       .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
       .getOrCreate()
 
-
     val ansj = new AnsjUtils
     val bansj = spark.sparkContext.broadcast(ansj)
 
     val reviewDF = readReview(spark)
     val commentDF = readComment(spark)
 
-    computeMovieKeyWords(spark, reviewDF,bansj)
-    computeMovieKeyWords(spark, commentDF,bansj)
+    computeMovieKeyWords(spark, reviewDF,bansj,"review")
+    computeMovieKeyWords(spark, commentDF,bansj,"comment")
 
     //这一步可以试试提高并行度
     //    val unionDF = reviewDF.repartition(24).join(commentDF.repartition(24))
     //用shuffle hash join的情形是,key平均分配,且key数量超过并行度
     val unionDF = reviewDF.join(commentDF, "movieid")
-    computeMovieKeyWords(spark, unionDF,bansj)
+    computeMovieKeyWords(spark, unionDF,bansj,"join")
 
     spark.stop()
   }
@@ -108,7 +107,7 @@ object MovieKeyWords extends Logging {
     val schema = StructType(Array(StructField("movieid", StringType, false), StructField("content", StringType, false)))
     val reveiwDF = spark.createDataFrame(movieid2ReviewsRDD, schema).persist(StorageLevel.MEMORY_AND_DISK_SER)
 //    reveiwDF.printSchema()
-    reveiwDF.take(10).foreach(print(_))
+//    reveiwDF.take(10).foreach(print(_))
     reveiwDF
   }
 
@@ -128,11 +127,11 @@ object MovieKeyWords extends Logging {
       "group by MOVIEID").persist(StorageLevel.MEMORY_AND_DISK_SER)
 
 //    movieCommentDF.take(10).foreach(print(_))
-    movieCommentDF.show()
+//    movieCommentDF.show()
     movieCommentDF
   }
 
-  def computeMovieKeyWords(spark: SparkSession, df: DataFrame, bansj: Broadcast[AnsjUtils]): Unit = {
+  def computeMovieKeyWords(spark: SparkSession, df: DataFrame, bansj: Broadcast[AnsjUtils],info:String): Unit = {
     import spark.implicits._
 
     val convert = df.map {
@@ -142,7 +141,8 @@ object MovieKeyWords extends Logging {
         (movieid, keyWords)
       }
     }
-    convert.printSchema()
-    convert.take(10).foreach(print(_))
+//    convert.printSchema()
+    convert.take(10).foreach(t=>
+      logInfo(info+" ------------:"+t))
   }
 }
