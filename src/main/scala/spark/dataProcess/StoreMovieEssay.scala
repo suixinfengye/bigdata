@@ -44,7 +44,6 @@ import scala.collection.mutable.ListBuffer
 --conf "spark.executor.extraJavaOptions=-Dlog4j.debug=true -Dlog4j.configuration=log4j.properties" \
 /usr/local/userlib/jars/bigdata.jar
   * feng
-  * 18-9-24
   */
 object StoreMovieEssay extends Logging {
 

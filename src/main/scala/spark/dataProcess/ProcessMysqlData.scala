@@ -39,7 +39,6 @@ import scala.collection.mutable.ArrayBuffer
 --conf "spark.executor.extraJavaOptions=-Dlog4j.debug=true -Dlog4j.configuration=log4j-executor.properties -XX:+PrintGCDetails -Xloggc:/usr/local/userlib/spark-2.2/logs/executor_gc.log -XX:+PrintGCDateStamps -XX:+PrintHeapAtGC -XX:+UseG1GC -XX:+PrintTenuringDistribution -Xms400m -XX:+PrintCommandLineFlags -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/usr/local/userlib/spark-2.2/logs/executor_oom.hprof" \
 /usr/local/userlib/jars/bigdata.jar
   * feng
-  * 18-10-9
   */
 object ProcessMysqlData extends Logging {
   val batchInterval: Int = 6

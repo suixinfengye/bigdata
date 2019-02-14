@@ -30,7 +30,8 @@ cd /home/feng/software/flume/
 bin/flume-ng agent -n logser -c conf -f conf/flume_movie_eassy.conf
 
 
-# kafka
+# kafka\
+
 cd /usr/local/userlib/kafka/bin
 ./kafka-server-start.sh -daemon ../config/server.properties
 ./kafka-topics.sh --create --zookeeper 192.168.0.101:2181,192.168.0.107:2181,192.168.0.108:2181 --replication-factor 2

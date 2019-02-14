@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory
 
 /**
   * feng
-  * 18-9-29
   */
 object CommonUtil {
 

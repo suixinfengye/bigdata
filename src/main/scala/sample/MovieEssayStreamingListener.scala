@@ -6,7 +6,6 @@ import org.apache.spark.streaming.scheduler.{StreamingListener, StreamingListene
 
 /**
   * feng
-  * 18-10-3
   */
 class MovieEssayStreamingListener(scc:StreamingContext) extends StreamingListener with Logging {
 

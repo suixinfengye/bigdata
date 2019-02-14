@@ -2,7 +2,6 @@ package utils
 
 /**
   * feng
-  * 18-9-25
   */
 object CommomConfig {
 

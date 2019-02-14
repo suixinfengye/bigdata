@@ -9,7 +9,6 @@ import utils.{MyConstant, MyDateUtil, MysqlUtil}
 
 /**
   * feng
-  * 18-10-8
   */
 object MysqlTest {
 

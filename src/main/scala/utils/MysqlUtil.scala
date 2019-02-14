@@ -7,7 +7,6 @@ import org.slf4j.LoggerFactory
 
 /**
   * feng
-  * 18-10-8
   */
 object MysqlUtil {
   val logger = LoggerFactory.getLogger(this.getClass)

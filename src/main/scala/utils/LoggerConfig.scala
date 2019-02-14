@@ -5,7 +5,6 @@ import org.apache.spark.internal.Logging
 
 /**
   * feng
-  * 18-9-24
   */
 object LoggerConfig  extends Logging {
 

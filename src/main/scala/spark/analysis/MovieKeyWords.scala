@@ -9,8 +9,9 @@ import org.apache.hadoop.hbase.util.Bytes
 import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.internal.Logging
 import org.apache.spark.sql.types.{DoubleType, StringType, StructField, StructType}
-import org.apache.spark.sql.{DataFrame, Row, SparkSession}
+import org.apache.spark.sql.{DataFrame, Row, SaveMode, SparkSession}
 import org.apache.spark.storage.StorageLevel
+import spark.analysis.MovieKeyWords.logInfo
 import spark.dataProcess.ProcessMysqlData.logInfo
 import spark.dto.Review
 import utils.{AnsjUtils, CommonUtil, MysqlUtil}
@@ -21,9 +22,6 @@ import utils.{AnsjUtils, CommonUtil, MysqlUtil}
 //--executor-memory 1G \
 //--num-executors 3 \
 //--total-executor-cores 3 \
-//--conf spark.speculation=true \
-//--conf spark.speculation.interval=500ms \
-//--conf spark.speculation.multiplier=3 \
 //--files "/usr/local/userlib/spark-2.2/conf/log4j-executor.properties" \
 //--driver-java-options "-Dlog4j.debug=true -Dlog4j.configuration=log4j.properties -XX:+HeapDumpOnOutOfMemoryError
 //-XX:HeapDumpPath=/usr/local/userlib/spark-2.2/logs/driver_oom.hprof
@@ -36,8 +34,8 @@ import utils.{AnsjUtils, CommonUtil, MysqlUtil}
 ///usr/local/userlib/jars/bigdata.jar
 /**
   * https://my.oschina.net/uchihamadara/blog/2032481
+  * 不要使用推测执行了,不然会导致部分执行慢task的executor被抛弃
   * feng
-  * 19-1-10
   */
 object MovieKeyWords extends Logging {
   def main(args: Array[String]) {
@@ -46,7 +44,7 @@ object MovieKeyWords extends Logging {
       .appName("MovieKeyWords")
       //determines the 'default number of partitions in RDDs returned by transformations like join,
       //reduceByKey, and parallelize when not set by user
-      .config("spark.defalut.parallelism", "9") //rdd
+      .config("spark.defalut.parallelism", "6") //rdd
       //Configures the number of partitions to use when shuffling data for joins or aggregations.
       //      .config("spark.sql.shuffle.partitions", "200") //dataframe
       //SparkSQL自适应框架可以通过设置shuffle partition的上下限区间，在这个区间内对不同作业不同阶段的reduce个数进行动态调整
@@ -70,7 +68,7 @@ object MovieKeyWords extends Logging {
     computeMovieKeyWords(spark, commentDF,bansj,"comment")
 
     //这一步可以试试提高并行度
-    //    val unionDF = reviewDF.repartition(24).join(commentDF.repartition(24))
+    //val unionDF = reviewDF.repartition(24).join(commentDF.repartition(24))
     //用shuffle hash join的情形是,key平均分配,且key数量超过并行度
     val unionDF = reviewDF.join(commentDF, "movieid")
     computeMovieKeyWords(spark, unionDF,bansj,"join")
@@ -106,8 +104,6 @@ object MovieKeyWords extends Logging {
     }
     val schema = StructType(Array(StructField("movieid", StringType, false), StructField("content", StringType, false)))
     val reveiwDF = spark.createDataFrame(movieid2ReviewsRDD, schema).persist(StorageLevel.MEMORY_AND_DISK_SER)
-//    reveiwDF.printSchema()
-//    reveiwDF.take(10).foreach(print(_))
     reveiwDF
   }
 
@@ -126,8 +122,6 @@ object MovieKeyWords extends Logging {
     val movieCommentDF: DataFrame = spark.sql("select MOVIEID as movieid, aggComments(COMMENT) as content from essaytmp " +
       "group by MOVIEID").persist(StorageLevel.MEMORY_AND_DISK_SER)
 
-//    movieCommentDF.take(10).foreach(print(_))
-//    movieCommentDF.show()
     movieCommentDF
   }
 
@@ -140,9 +134,14 @@ object MovieKeyWords extends Logging {
         val keyWords = ansjInstance.getKeywords(content).toString
         (movieid, keyWords)
       }
+      //join 后有两个contents
+      case Row(movieid: String, content1: String,content2: String) => {
+        val ansjInstance = bansj.value
+        val keyWords = ansjInstance.getKeywords(content1+content2).toString
+        (movieid, keyWords)
+      }
     }
-//    convert.printSchema()
-    convert.take(10).foreach(t=>
-      logInfo(info+" ------------:"+t))
+
+    convert.write.format("parquet").mode(SaveMode.Append).save("convert.parquet")
   }
 }

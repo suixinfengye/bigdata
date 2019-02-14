@@ -16,7 +16,6 @@ import scala.collection.mutable._
 
 /**
   * feng
-  * 18-9-25
   */
 object CommonTest {
   val logger = LoggerFactory.getLogger(this.getClass)

@@ -2,7 +2,6 @@ package utils
 
 /**
   * feng
-  * 18-10-2
   */
 object MyConstant {
   /**

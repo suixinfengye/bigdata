@@ -7,7 +7,6 @@ import utils.RedisUtil
 
 /**
   * feng
-  * 18-10-16
   */
 object RedisTestScala {
 

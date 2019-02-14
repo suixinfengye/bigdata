@@ -8,7 +8,6 @@ import org.apache.commons.lang3.time.DateUtils
 
 /**
   * feng
-  * 18-10-2
   */
 object MyDateUtil {
 

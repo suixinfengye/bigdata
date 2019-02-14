@@ -10,7 +10,6 @@ import scala.collection.JavaConversions._
 
 /**
   * feng
-  * 18-10-21
   */
 object JedisOffset {
   val logger = LoggerFactory.getLogger(this.getClass)
