@@ -67,7 +67,7 @@ object StoreMovieEssay extends Logging {
       .getOrCreate()
 
     //设置当前为测试环境
-    //    CommonUtil.setTestEvn
+    //CommonUtil.setTestEvn
 
     /**
       * If your Spark batch duration is larger than the default Kafka heartbeat session timeout (30 seconds),
@@ -149,7 +149,6 @@ object StoreMovieEssay extends Logging {
     //save into hbase
     batchRecordDS.foreachRDD {
       r => //List[List[Review]]
-        //rdd.partitions.isEmpty)
         if (!r.isEmpty()) {
           val reviewList: List[Review] = r.filter(list => list.nonEmpty).reduce(_ ++ _)
           logInfo("save reviewList to hbase:" + reviewList.size)
@@ -200,7 +199,6 @@ object StoreMovieEssay extends Logging {
           logInfo("start to save into Phoenix...")
           val conf = CommonUtil.getHbaseConfig
           t.toDF().saveToPhoenix("STEAMING_RECORD", conf, Option(CommonUtil.getPhoenixurl))
-//          t.toDF().saveToPhoenix("STEAMING_RECORD", conf, Option(CommomConfig.Phoenix_ZK_URL))
           logInfo("saved into Phoenix end")
         }
     }
@@ -214,15 +212,18 @@ object StoreMovieEssay extends Logging {
     */
   def regx(stringContent: String): List[Review] = {
     logInfo("stringContent:"+stringContent)
+
     val list = stringContent.split("---==---")
     val pattern = "([0-9]{5,})".r
     val fileNamePattern = getFileNamePattern
     val reviewPattern = "https://movie.douban.com/review/"
     val contentPattern = ":::"
     val reviewList: ListBuffer[Review] = ListBuffer[Review]()
+
     if (list == null) {
       return reviewList.toList
     }
+
     list.foreach { item =>
       logDebug("--item:"+item)
       if (item.length > 90) { //过滤空对象

@@ -47,7 +47,7 @@ object ProcessMysqlData extends Logging {
   def main(args: Array[String]): Unit = {
     val spark = SparkSession
       .builder()
-      //            .master("local")
+      //.master("local")
       .appName("ProcessMysqlData")
       .config("spark.streaming.stopGracefullyOnShutdown", "true")
       .config("spark.dynamicAllocation.enabled", "false")
@@ -60,9 +60,17 @@ object ProcessMysqlData extends Logging {
       .getOrCreate()
 
     //设置当前为测试环境
-    //    CommonUtil.setTestEvn
+    //CommonUtil.setTestEvn
 
     // config kafka
+    /**
+      * earliest
+      * 当各分区下有已提交的offset时，从提交的offset开始消费；无提交的offset时，从头开始消费
+      * latest
+      * 当各分区下有已提交的offset时，从提交的offset开始消费；无提交的offset时，消费新产生的该分区下的数据
+      * none
+      * topic各分区都存在已提交的offset时，从offset后开始消费；只要有一个分区不存在已提交的offset，则抛出异常
+      */
     val kafkaParams = Map[String, Object](
       "bootstrap.servers" -> CommonUtil.getKafkaServers,
       "key.deserializer" -> classOf[JsonDeserializer],
@@ -92,6 +100,7 @@ object ProcessMysqlData extends Logging {
 
       )
     }
+
     processDataWithRedis(spark, stream)
 
     ssc.start()
@@ -115,7 +124,8 @@ object ProcessMysqlData extends Logging {
         val offsetRange = rdd.asInstanceOf[HasOffsetRanges].offsetRanges
         val tableValue = rdd.filter(r => r.value != null)
           .map(record => convertTableJsonStr(record.value)).reduceByKey(_ ++ _)
-        //         按partition遍历
+
+        //按partition遍历
         tableValue.foreachPartition {
           part =>
             //get Connection in each partition
@@ -136,6 +146,7 @@ object ProcessMysqlData extends Logging {
             }
             MysqlUtil.colseConnection(con)
         }
+
         val jedis = CommonUtil.getRedis
         logInfo("offsetRange:" + offsetRange)
         //偏移量存入redis
@@ -144,6 +155,7 @@ object ProcessMysqlData extends Logging {
           jedis.hset(groupId, or.topic + "-" + or.partition, or.untilOffset.toString)
         }
       }
+
       rdd.count()
 
     }
@@ -248,7 +260,6 @@ object ProcessMysqlData extends Logging {
     val sql = "upsert INTO doulist(id,movieid,doulist_url,doulist_name,doulist_intr,user_name,user_url," +
       "collect_num,recommend_num,movie_num,doulist_cratedDate,doulist_updatedDate,created_time)" +
       "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,CONVERT_TZ(CURRENT_DATE(), 'UTC', 'Asia/Shanghai'))"
-//    val sql = "upsert INTO doulist(id,movieid) VALUES(?,?)"
     logInfo(sql)
     logInfo(list(0).toString)
     logInfo("insert doulist size:" + list.size)
@@ -474,7 +485,7 @@ object ProcessMysqlData extends Logging {
         "mysqlfullfillment.test.film_critics", "mysqlfullfillment.test.movie_base_info", "mysqlfullfillment.test.movie_detail",
         "mysqlfullfillment.test.movie_essay")
     }
-    logError("topic:" + topics)
+    logInfo("topic:" + topics)
     topics
   }
 }

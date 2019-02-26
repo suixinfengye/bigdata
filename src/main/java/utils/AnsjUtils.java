@@ -15,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /**
+ * 中文分词工具类
  * feng
  * 19-1-12
  */
@@ -44,6 +45,11 @@ public class AnsjUtils implements Serializable {
         return results;
     }
 
+    /**
+     * 提取关键词
+     * @param contents
+     * @return
+     */
     public List<Keyword> getKeywords(String contents) {
         String newContents = DicAnalysis.parse(contents)
                 .recognition(stop)

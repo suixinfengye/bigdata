@@ -1,5 +1,3 @@
-package sample;
-
 import redis.clients.jedis.JedisCluster;
 import utils.RedisUtil;
 

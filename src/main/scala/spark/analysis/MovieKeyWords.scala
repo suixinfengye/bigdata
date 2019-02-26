@@ -46,7 +46,7 @@ object MovieKeyWords extends Logging {
       //reduceByKey, and parallelize when not set by user
       .config("spark.defalut.parallelism", "6") //rdd
       //Configures the number of partitions to use when shuffling data for joins or aggregations.
-      //      .config("spark.sql.shuffle.partitions", "200") //dataframe
+      //.config("spark.sql.shuffle.partitions", "200") //dataframe
       //SparkSQL自适应框架可以通过设置shuffle partition的上下限区间，在这个区间内对不同作业不同阶段的reduce个数进行动态调整
       //通过区间的设置，一方面可以大大减少调优的成本(不需要找到一个固定值)，另一方面同一个作业内部不同reduce阶段的reduce个数也能动态调整
       //https://databricks.com/session/an-adaptive-execution-engine-for-apache-spark-sql
@@ -67,8 +67,6 @@ object MovieKeyWords extends Logging {
     computeMovieKeyWords(spark, reviewDF,bansj,"review")
     computeMovieKeyWords(spark, commentDF,bansj,"comment")
 
-    //这一步可以试试提高并行度
-    //val unionDF = reviewDF.repartition(24).join(commentDF.repartition(24))
     //用shuffle hash join的情形是,key平均分配,且key数量超过并行度
     val unionDF = reviewDF.join(commentDF, "movieid")
     computeMovieKeyWords(spark, unionDF,bansj,"join")
@@ -109,7 +107,7 @@ object MovieKeyWords extends Logging {
 
   /**
     * 读取短评
-    *
+    * movie_essay的记录并不大,可以保存在一个region中,所以只有一个partition
     * @param spark
     * @return
     */

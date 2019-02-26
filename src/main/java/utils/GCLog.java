@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
 
 /**
  * 用于找出GC时间过长的记录
+ * 可以用网络gc分析工具:https://gceasy.io/
  * feng
  * 18-12-9
  */

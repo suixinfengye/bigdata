@@ -30,8 +30,7 @@ cd /home/feng/software/flume/
 bin/flume-ng agent -n logser -c conf -f conf/flume_movie_eassy.conf
 
 
-# kafka\
-
+# kafka
 cd /usr/local/userlib/kafka/bin
 ./kafka-server-start.sh -daemon ../config/server.properties
 ./kafka-topics.sh --create --zookeeper 192.168.0.101:2181,192.168.0.107:2181,192.168.0.108:2181 --replication-factor 2
@@ -53,8 +52,6 @@ cd /usr/local/userlib/kafka
 bin/connect-distributed.sh config/connect-distributed-mysql.properties
 bin/connect-standalone.sh config/connect-standalone.properties config/mysql-local.properties
 
-
-
 http://192.168.0.101:8083/connectors
  {
    	"name": "mysql-clusterd1",
@@ -73,7 +70,7 @@ http://192.168.0.101:8083/connectors
 		"include.schema.changes": "true",
 		"transforms": "unwrap",
 		"transforms.unwrap.type": "io.debezium.transforms.UnwrapFromEnvelope",
-      "decimal.handling.modestring":"double"
+        "decimal.handling.modestring":"double"
     }
   }
 
@@ -95,6 +92,7 @@ hdfs haadmin -getServiceState nn1
 hdfs getconf -confKey dfs.namenode.avoid.read.stale.datanode
 hbase-daemons.sh start regionserver
 hbase-daemon.sh stop regionserver RegionServer
+
 # phoenix
 /usr/local/userlib/phoenix-4.14.0-HBase-1.4/bin/sqlline.py spark1:2181
 
@@ -122,32 +120,13 @@ cluster nodes
 cluster info
 info
 
-
+# fail
 source /home/feng/software/code/python/RedisLive/venv/bin/activate
 cd /home/feng/software/code/python/RedisLive/redis-monitor/src/
 ./redis_monitor.py
 
-yum install curl
-curl -L get.rvm.io | bash -s stable
-usermod -a -G rvm root
-source /usr/local/rvm/scripts/rvm
-rvm list known
-yum -y update nss
-rvm install 2.4.4
-rvm use 2.4.4
-rvm remove 1.8.7
-ruby --version
-
-src/redis-trib.rb  create  --replicas  1 192.168.0.101:7000 192.168.0.101:7001 192.168.0.107:7000 192.168.0.107:7001 192.168.0.108:7000 192.168.0.108:7001
-
-https://blog.csdn.net/chenxinchongcn/article/details/78666374?utm_source=blogxgwz0
-https://www.cnblogs.com/carryping/p/7447823.html
-https://blog.csdn.net/lsxf_xin/article/details/79442198
-https://blog.csdn.net/huwh_/article/details/79242625
-
 #指定 redis 只接收来自于该 IP 地址的请求，如果不进行设置，那么将处理所有请求
 bind 127.0.0.1
-
 
 #spark
 start-shuffle-service.sh #动态资源分配用到外部服务进程

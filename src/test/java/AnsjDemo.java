@@ -1,5 +1,3 @@
-package sample;
-
 import org.ansj.app.keyword.KeyWordComputer;
 import org.ansj.app.keyword.Keyword;
 import org.ansj.recognition.impl.StopRecognition;

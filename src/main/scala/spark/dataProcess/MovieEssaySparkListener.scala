@@ -13,9 +13,7 @@ import utils.{MyConstant, MyDateUtil, MysqlUtil}
 
 /**
   * 在streaming application关闭时,插入保存记录
-
   * feng
-  * 18-10-4
   */
 class MovieEssaySparkListener(spark: SparkSession, acc: LongAccumulator, startTime: Timestamp) extends SparkListener {
 
@@ -39,7 +37,7 @@ class MovieEssaySparkListener(spark: SparkSession, acc: LongAccumulator, startTi
       curretTime, null)
     val prepareStatementStr = "INSERT INTO steaming_record(id,startTime, endTime," +
       "recordCount,recordType, batchRecordId,created_time) VALUES(?,?,?,?,?,?,?)"
-    logger.info("prepareStatement : "+prepareStatementStr)
+    logger.info("prepareStatement : " + prepareStatementStr)
     logger.info(record.toString)
 
     val con = MysqlUtil.getCon
