@@ -103,3 +103,8 @@ https://issues.apache.org/jira/browse/SPARK-20780
 kafka版本问题
 修改kafka版本即可
 
+
+双亲委派模型
+(file:/usr/local/userlib/phoenix-4.14.0-HBase-1.4/phoenix-4.14.0-HBase-1.4-client.jar
+:/usr/java/jdk1.8.0_151/jre/lib/ext/javax.servlet-api-3.1.0.jar <no signer certificates>)
+javax.servlet-api-3.1.0.jar

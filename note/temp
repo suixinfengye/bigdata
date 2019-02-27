@@ -1,0 +1,582 @@
+ {
+   	"name": "mysql-cluster-connector-bigdata",
+	"config": {
+		"connector.class": "io.debezium.connector.mysql.MySqlConnector",
+		"database.hostname": "192.168.0.100",
+		"database.port": "3306",
+		"database.user": "debezium",
+		"database.password": "feng",
+		"database.server.id": "18410",
+		"database.server.name": "mysql-cluster-bigdata",
+		"database.whitelist": "bigdata",
+		"table.blacklist":"bigdata.trick_url,bigdata.steaming_record",
+		"database.history.kafka.bootstrap.servers": "192.168.0.101:9092,192.168.0.107:9092,192.168.0.108:9092",
+		"database.history.kafka.topic": "cluster-bigdata",
+		"include.schema.changes": "true",
+		"transforms": "unwrap",
+		"transforms.unwrap.type": "io.debezium.transforms.UnwrapFromEnvelope"
+	}
+  }
+
+
+{
+	"name": "mysql-cluster-connector",
+	"config": {
+		"connector.class": "io.debezium.connector.mysql.MySqlConnector",
+		"database.hostname": "192.168.0.100",
+		"database.port":"3306",
+		"database.user":"debezium",
+		"database.password":"feng",
+		"database.server.id":"18405",
+		"database.server.name":"mysqlclustertest",
+		"database.whitelist":"test",
+		"database.history.kafka.bootstrap.servers":"192.168.0.101:9092,192.168.0.107:9092,192.168.0.108:9092",
+		"database.history.kafka.topic":"dbhistory.cluster-test",
+		"include.schema.changes":"true"
+	}
+}
+
+
+./bin/spark-submit \
+--class sample.WordCount \
+--master spark://spark1:7077 \
+--executor-memory 1G \
+--files log4j.properties \
+--total-executor-cores 2 \
+--files "/usr/local/userlib/conf/log4j.properties" \
+--driver-java-options "-Dlog4j.debug=true -Dlog4j.configuration=log4j.properties" \
+--conf "spark.executor.extraJavaOptions=-Dlog4j.debug=true -Dlog4j.configuration=log4j.properties" \
+/usr/local/userlib/jars/bigdata.jar
+
+
+18/11/19 01:24:56 ERROR JobScheduler JobScheduler 91: Error generating jobs for time 1542561896000 ms
+java.lang.IllegalArgumentException: requirement failed: numRecords must not be negative
+        at scala.Predef$.require(Predef.scala:224)
+        at org.apache.spark.streaming.scheduler.StreamInputInfo.<init>(InputInfoTracker.scala:38)
+        at org.apache.spark.streaming.kafka010.DirectKafkaInputDStream.compute(DirectKafkaInputDStream.scala:233)
+        at org.apache.spark.streaming.dstream.DStream$$anonfun$getOrCompute$1$$anonfun$1$$anonfun$apply$7.apply(DStream.scala:342)
+        at org.apache.spark.streaming.dstream.DStream$$anonfun$getOrCompute$1$$anonfun$1$$anonfun$apply$7.apply(DStream.scala:342)
+        at scala.util.DynamicVariable.withValue(DynamicVariable.scala:58)
+        at org.apache.spark.streaming.dstream.DStream$$anonfun$getOrCompute$1$$anonfun$1.apply(DStream.scala:341)
+        at org.apache.spark.streaming.dstream.DStream$$anonfun$getOrCompute$1$$anonfun$1.apply(DStream.scala:341)
+        at org.apache.spark.streaming.dstream.DStream.createRDDWithLocalProperties(DStream.scala:416)
+        at org.apache.spark.streaming.dstream.DStream$$anonfun$getOrCompute$1.apply(DStream.scala:336)
+        at org.apache.spark.streaming.dstream.DStream$$anonfun$getOrCompute$1.apply(DStream.scala:334)
+        at scala.Option.orElse(Option.scala:289)
+        at org.apache.spark.streaming.dstream.DStream.getOrCompute(DStream.scala:331)
+        at org.apache.spark.streaming.dstream.ForEachDStream.generateJob(ForEachDStream.scala:48)
+        at org.apache.spark.streaming.DStreamGraph$$anonfun$1.apply(DStreamGraph.scala:122)
+        at org.apache.spark.streaming.DStreamGraph$$anonfun$1.apply(DStreamGraph.scala:121)
+        at scala.collection.TraversableLike$$anonfun$flatMap$1.apply(TraversableLike.scala:241)
+        at scala.collection.TraversableLike$$anonfun$flatMap$1.apply(TraversableLike.scala:241)
+        at scala.collection.mutable.ResizableArray$class.foreach(ResizableArray.scala:59)
+        at scala.collection.mutable.ArrayBuffer.foreach(ArrayBuffer.scala:48)
+        at scala.collection.TraversableLike$class.flatMap(TraversableLike.scala:241)
+        at scala.collection.AbstractTraversable.flatMap(Traversable.scala:104)
+        at org.apache.spark.streaming.DStreamGraph.generateJobs(DStreamGraph.scala:121)
+        at org.apache.spark.streaming.scheduler.JobGenerator$$anonfun$3.apply(JobGenerator.scala:249)
+        at org.apache.spark.streaming.scheduler.JobGenerator$$anonfun$3.apply(JobGenerator.scala:247)
+        at scala.util.Try$.apply(Try.scala:192)
+        at org.apache.spark.streaming.scheduler.JobGenerator.generateJobs(JobGenerator.scala:247)
+        at org.apache.spark.streaming.scheduler.JobGenerator.org$apache$spark$streaming$scheduler$JobGenerator$$processEvent(JobGenerator.scala:183)
+        at org.apache.spark.streaming.scheduler.JobGenerator$$anon$1.onReceive(JobGenerator.scala:89)
+        at org.apache.spark.streaming.scheduler.JobGenerator$$anon$1.onReceive(JobGenerator.scala:88)
+        at org.apache.spark.util.EventLoop$$anon$1.run(EventLoop.scala:48)
+18/11/19 01:24:56 INFO JobGenerator JobGenerator 54: Checkpointing graph for time 1542561896000 ms
+18/11/19 01:24:56 INFO JobGenerator DStreamGraph 54: Updating checkpoint data for time 1542561896000 ms
+Exception in thread "main" java.lang.IllegalArgumentException: requirement failed: numRecords must not be negative
+        at scala.Predef$.require(Predef.scala:224)
+        at org.apache.spark.streaming.scheduler.StreamInputInfo.<init>(InputInfoTracker.scala:38)
+        at org.apache.spark.streaming.kafka010.DirectKafkaInputDStream.compute(DirectKafkaInputDStream.scala:233)
+        at org.apache.spark.streaming.dstream.DStream$$anonfun$getOrCompute$1$$anonfun$1$$anonfun$apply$7.apply(DStream.scala:342)
+        at org.apache.spark.streaming.dstream.DStream$$anonfun$getOrCompute$1$$anonfun$1$$anonfun$apply$7.apply(DStream.scala:342)
+        at scala.util.DynamicVariable.withValue(DynamicVariable.scala:58)
+        at org.apache.spark.streaming.dstream.DStream$$anonfun$getOrCompute$1$$anonfun$1.apply(DStream.scala:341)
+        at org.apache.spark.streaming.dstream.DStream$$anonfun$getOrCompute$1$$anonfun$1.apply(DStream.scala:341)
+        at org.apache.spark.streaming.dstream.DStream.createRDDWithLocalProperties(DStream.scala:416)
+        at org.apache.spark.streaming.dstream.DStream$$anonfun$getOrCompute$1.apply(DStream.scala:336)
+        at org.apache.spark.streaming.dstream.DStream$$anonfun$getOrCompute$1.apply(DStream.scala:334)
+        at scala.Option.orElse(Option.scala:289)
+        at org.apache.spark.streaming.dstream.DStream.getOrCompute(DStream.scala:331)
+        at org.apache.spark.streaming.dstream.ForEachDStream.generateJob(ForEachDStream.scala:48)
+        at org.apache.spark.streaming.DStreamGraph$$anonfun$1.apply(DStreamGraph.scala:122)
+        at org.apache.spark.streaming.DStreamGraph$$anonfun$1.apply(DStreamGraph.scala:121)
+        at scala.collection.TraversableLike$$anonfun$flatMap$1.apply(TraversableLike.scala:241)
+        at scala.collection.TraversableLike$$anonfun$flatMap$1.apply(TraversableLike.scala:241)
+        at scala.collection.mutable.ResizableArray$class.foreach(ResizableArray.scala:59)
+        at scala.collection.mutable.ArrayBuffer.foreach(ArrayBuffer.scala:48)
+        at scala.collection.TraversableLike$class.flatMap(TraversableLike.scala:241)
+        at scala.collection.AbstractTraversable.flatMap(Traversable.scala:104)
+        at org.apache.spark.streaming.DStreamGraph.generateJobs(DStreamGraph.scala:121)
+        at org.apache.spark.streaming.scheduler.JobGenerator$$anonfun$3.apply(JobGenerator.scala:249)
+        at org.apache.spark.streaming.scheduler.JobGenerator$$anonfun$3.apply(JobGenerator.scala:247)
+        at scala.util.Try$.apply(Try.scala:192)
+        at org.apache.spark.streaming.scheduler.JobGenerator.generateJobs(JobGenerator.scala:247)
+        at org.apache.spark.streaming.scheduler.JobGenerator.org$apache$spark$streaming$scheduler$JobGenerator$$processEvent(JobGenerator.scala:183)
+        at org.apache.spark.streaming.scheduler.JobGenerator$$anon$1.onReceive(JobGenerator.scala:89)
+        at org.apache.spark.streaming.scheduler.JobGenerator$$anon$1.onReceive(JobGenerator.scala:88)
+        at org.apache.spark.util.EventLoop$$anon$1.run(EventLoop.scala:48)
+18/11/19 01:24:56 INFO JobGenerator DStreamGraph 54: Updated checkpoint data for time 1542561896000 ms
+18/11/19 01:24:56 INFO JobGenerator CheckpointWriter 54: Submitted checkpoint of time 1542561896000 ms to writer queue
+18/11/19 01:24:56 INFO Thread-2 StreamingContext 54: Invoking stop(stopGracefully=true) from shutdown hook
+18/11/19 01:24:56 INFO Thread-2 BatchedWriteAheadLog 54: BatchedWriteAheadLog shutting down at time: 1542561896283.
+
+Check your Kafka topic offset. The one you given in code might be out of range.
+重新搞一下topic这些
+
+
+ ./bin/spark-submit \
+--class spark.dataProcess.ProcessMysqlData \
+--master spark://spark1:7077 \
+--executor-memory 1G \
+--num-executors 2 \
+--total-executor-cores 2 \
+--files "/usr/local/userlib/conf/log4j.properties" \
+--driver-java-options "-Dlog4j.debug=true -Dlog4j.configuration=log4j.properties" \
+--conf "spark.executor.extraJavaOptions=-Dlog4j.debug=true -Dlog4j.configuration=log4j.properties -XX:+PrintGCDetails -Xloggc:/usr/local/userlib/spark-2.2/logs/executor_gc.log -XX:+PrintGCDateStamps -XX:+PrintHeapAtGC" \
+/usr/local/userlib/jars/bigdata.jar
+
+
+connect-configs-testa
+
+./kafka-topics.sh --create --zookeeper 192.168.0.101:2181,192.168.0.107:2181,192.168.0.108:2181 --replication-factor 2 --partitions 1 --topic connect-configs-testa
+./kafka-topics.sh -zookeeper 192.168.0.101:2181,192.168.0.107:2181,192.168.0.108:2181 --topic connect-configs-testa --describe
+
+./kafka-console-consumer.sh --zookeeper 192.168.0.101:2181,192.168.0.107:2181,192.168.0.108:2181 --topic mysql-clusterb.test.doulist --from-beginning
+
+
+
+ DOULIST               | TABLE         |          |            |                            |             |
+|            |              | DOULIST_MOVIE_DETAIL  | TABLE         |          |            |                            |             |
+|            |              | FILM_CRITICS          | TABLE         |          |            |                            |             |
+|            |              | MOVIE_BASE_INFO       | TABLE         |          |            |                            |             |
+|            |              | MOVIE_DETAIL          | TABLE         |          |            |                            |             |
+|            |              | MOVIE_ESSAY           | TABLE         |          |            |                            |             |
+|            |              | STEAMING_RECOR
+delete  from DOULIST;
+delete  from DOULIST_MOVIE_DETAIL;
+delete  from FILM_CRITICS;
+delete  from MOVIE_BASE_INFO;
+delete  from MOVIE_DETAIL;
+delete  from MOVIE_ESSAY;
+delete  from STEAMING_RECORD;
+
+./kafka-topics.sh -zookeeper 192.168.0.101:2181,192.168.0.107:2181,192.168.0.108:2181 --topic mysql-clusterc.bigdata.doulist --describe
+
+
+ WARN SparkUI-37 HttpChannel 479: //192.168.0.101:4040/static/streaming/streaming-page.js
+java.lang.NoSuchMethodError: javax.servlet.http.HttpServletRequest.isAsyncStarted()Z
+        at org.spark_project.jetty.servlet.ServletHandler.doHandle(ServletHandler.java:687)
+        at org.spark_project.jetty.server.handler.ContextHandler.doHandle(ContextHandler.java:1180)
+        at org.spark_project.jetty.servlet.ServletHandler.doScope(ServletHandler.java:511)
+        at org.spark_project.jetty.server.handler.ContextHandler.doScope(ContextHandler.java:1112)
+        at org.spark_project.jetty.server.handler.ScopedHandler.handle(ScopedHandler.java:141)
+        at org.spark_project.jetty.server.handler.ContextHandlerCollection.handle(ContextHandlerCollection.java:213)
+        at org.spark_project.jetty.server.handler.HandlerWrapper.handle(HandlerWrapper.java:134)
+        at org.spark_project.jetty.server.Server.handle(Server.java:524)
+        at org.spark_project.jetty.server.HttpChannel.handle(HttpChannel.java:319)
+        at org.spark_project.jetty.server.HttpConnection.onFillable(HttpConnection.java:253)
+        at org.spark_project.jetty.io.AbstractConnection$ReadCallback.succeeded(AbstractConnection.java:273)
+        at org.spark_project.jetty.io.FillInterest.fillable(FillInterest.java:95)
+        at org.spark_project.jetty.io.SelectChannelEndPoint$2.run(SelectChannelEndPoint.java:93)
+        at org.spark_project.jetty.util.thread.strategy.ExecuteProduceConsume.executeProduceConsume(ExecuteProduceConsume.java:303)
+        at org.spark_project.jetty.util.thread.strategy.ExecuteProduceConsume.produceConsume(ExecuteProduceConsume.java:148)
+        at org.spark_project.jetty.util.thread.strategy.ExecuteProduceConsume.run(ExecuteProduceConsume.java:136)
+        at org.spark_project.jetty.util.thread.QueuedThreadPool.runJob(QueuedThreadPool.java:671)
+        at org.spark_project.jetty.util.thread.QueuedThreadPool$2.run(QueuedThreadPool.java:589)
+        at java.lang.Thread.run(Thread.java:748)
+
+org.apache.spark.deploy.SparkSubmit
+org.apache.spark.executor.CoarseGrainedExecutorBackend
+
+做几步操作
+1.修复webui问题
+2.增大spark.streaming.kafka.maxRatePerPartition
+3.给spark程序加上gc info
+4.将日志级别改为debug
+5.看看另一个executor的visualvm
+6.top信息看下内存和cpu占用
+7.网络占用应该不用看
+
+删除时,只需要删除redis和sql内数据
+
+
+./bin/spark-submit \
+--class sample.KafkaWordCount \
+--master spark://feng:7077 \
+--executor-memory 1G \
+--total-executor-cores 2 \
+/home/feng/software/code/bigdata/out/artifacts/bigdata/bigdata.jar
+
+ ./bin/spark-submit \
+--class sample.KafkaWordCount \
+--master spark://spark1:7077 \
+--executor-memory 1G \
+--num-executors 2 \
+--total-executor-cores 2 \
+--files "/usr/local/userlib/conf/log4j.properties" \
+--driver-java-options "-Dlog4j.debug=true -Dlog4j.configuration=log4j.properties" \
+--conf "spark.executor.extraJavaOptions=-Dlog4j.debug=true -Dlog4j.configuration=log4j.properties" \
+/usr/local/userlib/jars/bigdata.jar
+
+双亲委派模型
+(file:/usr/local/userlib/phoenix-4.14.0-HBase-1.4/phoenix-4.14.0-HBase-1.4-client.jar
+:/usr/java/jdk1.8.0_151/jre/lib/ext/javax.servlet-api-3.1.0.jar <no signer certificates>)
+javax.servlet-api-3.1.0.jar
+
+
+-XX:+PrintGCDetails  -XX:+PrintGCTimeStamps -XX:+PrintHeapAtGC
+
+   If this is the case, use ":recover" or "vim -r spark-2.2/conf/spark-defaults.conf"
+    to recover the changes (see ":help recovery").
+    If you did this already, delete the swap file "spark-2.2/conf/.spark-defaults.conf.swp"
+    to avoid this message.
+
+zookeeper可能有问题
+phoneix可能连不上
+
+请教一下如何提升sparkstreaming 处理kafka消息速度,:
+在本地测试时(3 node),开启反压机制后,稳定处理速度大概是3000/batch, 如果想要提高该值,可以从哪方面入手?
+
+请问sparkstreaming 突然某些batch处理速度
+18/12/04 23:38:32
+18/12/04 23:39:13
+
+是不是创建connect的问题?
+还是gc?
+
+调节executor内存占比吧?
+或者用堆外内存
+要确认是不是gc导致的延迟
+要改gc算法?
+顺便注意一下是不是数据倾斜
+或者在另一个节点上出现的延迟,
+看到jvm executor gc太严重了
+
+查一下
+Executors
+ Show Additional Metrics
+ (De)select All
+  On Heap Storage Memory
+  Off Heap Storage Memory
+
+
+  2018/12/05 00:34:36
+
+
+吧glassfish加到jar包中
+
+
+
+spark推测执行
+
+缓存RDD和广播（Broadcast）数据时占用的内存被规划为存储（Storage）内存，而这些任务在执行Shuffle时占用的内存被规划为执行（Execution）内存，剩余的部分不做特殊规划，那些Spark内部的对象实例，或者用户定义的Spark应用程序中的对象实例，均占用剩余的空间
+
+作者：LeonLu
+链接：https://www.jianshu.com/p/3981b14df76b
+來源：简书
+简书著作权归作者所有，任何形式的转载都请联系作者获得授权并注明出处。
+
+在默认情况下堆外内存并不启用，可通过配置spark.memory.offHeap.enabled参数启用，并由spark.memory.offHeap.size参数设定堆外空间的大小。
+https://upload-images.jianshu.io/upload_images/35301-671d45082ea6ea92.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1000/format/webp
+1.3
+spark.storage.memoryFraction=0.3 默认0.6
+spark.shuffle.memoryFraction=0.3 默认0.2
+用户定义的数据结果/spark内部元数据 1-0.3-0.3=0.4 默认0.2
+
+可用的存储内存 = systemMaxMemory * spark.storage.memoryFraction * spark.storage.safetyFraction
+可用的执行内存 = systemMaxMemory * spark.shuffle.memoryFraction * spark.shuffle.safetyFraction
+
+作者：LeonLu
+链接：https://www.jianshu.com/p/3981b14df76b
+來源：简书
+简书著作权归作者所有，任何形式的转载都请联系作者获得授权并注明出处。
+
+
+去页面查看下内存配置
+堆外
+storage:spark.memory.storageFraction 默认0.5
+
+2.0+
+spark.memory.fraction=0.4 默认0.6 统一内存
+其他内存 = 1-0.4 = 0.6 m默认0.4
+
+
+spark.storage.storageFraction=0.3 默认0.5
+执行 = 1-0.3=0.7 默认0.5
+
+--conf spark.speculation=false \
+--conf spark.speculation.multiplier=3 \
+--conf spark.sql.shuffle.partitions=2000 \
+-conf spark.memory.fraction=0.8 \
+--conf spark.memory.storageFraction=0.2 \
+
+
+
+  spark.speculation=true  //预测执行， 前提：task是幂等
+
+--conf spark.speculation=true \
+--conf spark.speculation.interval=1000ms\
+--conf spark.speculation.multiplier=3 \
+
+--conf spark.memory.fraction=0.4 \
+--conf spark.memory.storageFraction=0.3 \
+
+
+--conf spark.sql.shuffle.partitions=2000 \
+--conf spark.memory.fraction=0.8 \
+--conf spark.memory.storageFraction=0.2 \
+
+--conf "spark.executor.extraJavaOptions=-Dlog4j.debug=true -Dlog4j.configuration=log4j-executor.properties -XX:+PrintGCDetails -Xloggc:/usr/local/userlib/spark-2.2/logs/executor_gc.log -XX:+PrintGCDateStamps -XX:+PrintHeapAtGC" \
+
+-XX:+UseG1GC
+-XX:G1PrintHeapRegions
+
+这两项要看gc日志
+XX:NewRatio=n	new/old 年代的大小比例. 默认值 2.
+-XX:SurvivorRatio=n	eden/survivor 空间的大小比例. 默认值 8
+
+-XX:+PrintGCApplicationConcurrentTime -XX:+PrintGCApplicationStoppedTime
+
+./bin/spark-submit \
+--class spark.dataProcess.ProcessMysqlData \
+--master spark://spark1:7077 \
+--executor-memory 1G \
+--num-executors 3 \
+--total-executor-cores 3 \
+--files "/usr/local/userlib/conf/log4j-executor.properties" \
+--driver-java-options "-Dlog4j.debug=true -Dlog4j.configuration=log4j.properties" \
+--conf spark.memory.fraction=0.8 \
+--conf spark.memory.storageFraction=0.3 \
+--conf spark.speculation=true \
+--conf spark.speculation.interval=500ms \
+--conf spark.speculation.multiplier=3 \
+--conf spark.task.reaper.enabled=true \
+--conf spark.task.reaper.killTimeout=100s \
+--conf "spark.executor.extraJavaOptions=-Dlog4j.debug=true -Dlog4j.configuration=log4j-executor.properties -XX:+PrintGCDetails -Xloggc:/usr/local/userlib/spark-2.2/logs/executor_gc.log -XX:+PrintGCDateStamps -XX:+PrintHeapAtGC -XX:+UseG1GC -XX:+PrintTenuringDistribution -Xms400m -XX:+PrintCommandLineFlags -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/usr/local/userlib/spark-2.2/logs/executor_oom.hprof" \
+/usr/local/userlib/jars/bigdata.jar
+
+-Dspark.history.retainedApplications=10
+-Dspark.worker.cleanup.enabled=true
+
+./bin/spark-submit \
+--class spark.dataProcess.ProcessMysqlData \
+--master spark://spark1:7077 \
+--executor-memory 1G \
+--num-executors 3 \
+--total-executor-cores 3 \
+--driver-java-options "-Dlog4j.debug=true -Dlog4j.configuration=log4j.properties" \
+--conf spark.memory.fraction=0.8 \
+--conf spark.memory.storageFraction=0.3 \
+--conf spark.speculation=true \
+--conf spark.speculation.interval=500ms \
+--conf spark.speculation.multiplier=3 \
+--conf spark.task.reaper.enabled=true \
+--conf spark.task.reaper.killTimeout=100s \
+--conf "spark.executor.extraJavaOptions=-Dlog4j.debug=true  -XX:+PrintGCDetails -Xloggc:/usr/local/userlib/spark-2.2/logs/executor_gc.log -XX:+PrintGCDateStamps -XX:+PrintHeapAtGC -XX:+UseG1GC -XX:+PrintTenuringDistribution -Xms400m -XX:+PrintCommandLineFlags -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/usr/local/userlib/spark-2.2/logs/executor_oom.hprof" \
+/usr/local/userlib/jars/bigdata.jar
+
+--conf spark.task.reaper.killTimeout=100s \
+接下来把其他进程的内存降下来 根据visualvm'
+
+把hmaster的内存提升下
+都改成g1
+
+-XX:+PrintGCDetails -Xloggc:/usr/local/userlib/kafka/logs/kafka_gc.log -XX:+PrintGCDateStamps -XX:+PrintHeapAtGC -XX:+UseG1GC -XX:+PrintTenuringDistribution -Xmx800M -Xms256m -XX:+PrintCommandLineFlags -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/usr/local/userlib/kafka/logs/kafka_oom.hprof
+
+怎么让spark task kafka partition 不要集中在一个executor
+真的是数据本地化问题
+
+-Xms400m -XX:+UseG1GC
+-XX:+UseG1GC
+-XX:NewRatio=1
+bigdataa
+cluster-bigdata
+cluster-bigdata2
+connect-configs-mysql
+connect-configs-mysqld
+connect-configs-test
+connect-configs-testa
+connect-offsets-mysql
+connect-offsets-mysqld
+connect-offsets-test
+connect-offsets-testa
+connect-status-mysql
+connect-status-mysqld
+connect-status-test
+connect-status-testa
+dbhistory.cluster-test
+movie-essay-topic
+mysql
+mysqlclustertest
+mysqlclustertest.test.tbl
+mysqlclustertest.test.tbl-smt
+test-flume-topic
+test1
+test11
+
+有个sparkstreaming  开启推测执行后导致task分配不均的问题
+Task do not assign to exectuor after spark speculation take effect in SparkStreaming
+
+正常运转时各结点数据本地性都是process_local，当某个节点（下图executor 0）的task运行太慢，推测执行生效，该task被分发到其他节点执行完成
+I have a SparkStreaming application reading message from kafka, all the task process data with locality of process_local.
+The speculation take effect and rerun task in other executor when a task pending in executor 0 (see the picture below)
+
+But I find out that no task will assign to executor 0 after speculation take effect, and the data locality change form process_local to any, which cause more time to shechdule task
+
+但发现后续所有sparkstreaming 的task就不会分发到executor 0上了，数据本地性也变成 any，导致task调度执行总要等多一点分配时间
+
+I did not opend black list in spark.(I did not set the value of spark.blacklist.enabled, so it would be false by default)
+How can I make task assign to executor 0 again and recover the data locality from any to process_local?
+Why task will not assign to executor any more?
+
+没有开启黑名单机制，如何让executor 0可以重新执行task？恢复到 process_local的数据本地性？
+为什么task不再分配到executor 0上了？
+
+spark.speculation.interval	500ms
+spark.scheduler.mode	FIFO
+spark.streaming.kafka.maxRatePerPartition	100
+spark.locality.wait	1s
+spark.defalut.parallelism	6
+
+
+I have a SparkStreaming application reading message from kafka, all the task process data with locality of process_local.
+The speculation take effect and rerun task in other executor when a task pending in executor 0 (see the picture below)
+
+But I find out that no task will assign to executor 0 after speculation take effect, and the data locality change form process_local to any, which cause more time to shechdule task
+
+I did not opend black list in spark.(I did not set the value of spark.blacklist.enabled, so it would be false by default)
+
+How can I make task assign to executor 0 again and recover the data locality from any to process_local?
+Why task will not assign to executor 0 any more?
+
+some config:
+spark.speculation.interval	500ms
+spark.scheduler.mode	FIFO
+spark.streaming.kafka.maxRatePerPartition	100
+spark.locality.wait	1s
+spark.defalut.parallelism	6
+
+Task do not assign to exectuor after spark speculation take effect in SparkStreaming
+
+stackoverflow/stackoverflow/
+stackoverflow/
+
+stackoverflowstackoverflow//
+
+stackoverflow/
+
+stackoverflow/
+
+stackoverflow/
+stackoverflow/stackoverflow/
+stackoverflow/
+		Executor ID
+		ID of the executor
+		Address	Status	RDD Blocks	Storage Memory	Disk Used	Cores	Active Tasks	Failed Tasks	Complete Tasks	Total Tasks	Task Time (GC Time)	Input	Shuffle Read	Shuffle Write	Logs
+		2	192.168.0.107:54164	Active	0	0.0 B / 607.3 MB	0.0 B	1	1	0	2412	2413	23 min (11 s)	0.0 B	721.6 KB	21.9 MB
+		stdout
+		stderr
+		1	192.168.0.108:53236	Active	0	0.0 B / 607.3 MB	0.0 B	1	1	0	486	487	5.1 min (5 s)	0.0 B	9.6 KB	32.7 MB
+		stdout
+		stderr
+		driver	192.168.0.101:58264	Active	0	0.0 B / 195.9 MB	0.0 B	0	0	0	0	0	0 ms (0 ms)	0.0 B	0.0 B	0.0 B
+		0	192.168.0.101:34963	Active	0	0.0 B / 607.3 MB	0.0 B	1	1	0	311	312	36 s (0.7 s)	0.0 B	0.0 B	8.7 MB
+		stdout
+		stderr
+		Executor ID
+		ID of the executor
+		Address	Status	RDD Blocks	Storage Memory	Disk Used	Cores	Active Tasks	Failed Tasks	Complete Tasks	Total Tasks	Task Time (GC Time)	Input	Shuffle Read	Shuffle Write	Logs
+		2	192.168.0.107:54164	Active	0	0.0 B / 607.3 MB	0.0 B	1	1	0	2412	2413	23 min (11 s)	0.0 B	721.6 KB	21.9 MB
+		stdout
+		stderr
+		1	192.168.0.108:53236	Active	0	0.0 B / 607.3 MB	0.0 B	1	1	0	486	487	5.1 min (5 s)	0.0 B	9.6 KB	32.7 MB
+		stdout
+		stderr
+		driver	192.168.0.101:58264	Active	0	0.0 B / 195.9 MB	0.0 B	0	0	0	0	0	0 ms (0 ms)	0.0 B	0.0 B	0.0 B
+		0	192.168.0.101:34963	Active	0	0.0 B / 607.3 MB	0.0 B	1	1	0	311	312	36 s (0.7 s)	0.0 B	0.0 B	8.7 MB
+		stdout
+		stderr
+		Executor ID
+		ID of the executor
+		Address	Status	RDD Blocks	Storage Memory	Disk Used	Cores	Active Tasks	Failed Tasks	Complete Tasks	Total Tasks	Task Time (GC Time)	Input	Shuffle Read	Shuffle Write	Logs
+		2	192.168.0.107:54164	Active	0	0.0 B / 607.3 MB	0.0 B	1	1	0	2412	2413	23 min (11 s)	0.0 B	721.6 KB	21.9 MB
+		stdout
+		stderr
+		1	192.168.0.108:53236	Active	0	0.0 B / 607.3 MB	0.0 B	1	1	0	486	487	5.1 min (5 s)	0.0 B	9.6 KB	32.7 MB
+		stdout
+		stderr
+		driver	192.168.0.101:58264	Active	0	0.0 B / 195.9 MB	0.0 B	0	0	0	0	0	0 ms (0 ms)	0.0 B	0.0 B	0.0 B
+		0	192.168.0.101:34963	Active	0	0.0 B / 607.3 MB	0.0 B	1	1	0	311	312	36 s (0.7 s)	0.0 B	0.0 B	8.7 MB
+		stdout
+		stderr		Executor ID
+		ID of the executor
+		Address	Status	RDD Blocks	Storage Memory	Disk Used	Cores	Active Tasks	Failed Tasks	Complete Tasks	Total Tasks	Task Time (GC Time)	Input	Shuffle Read	Shuffle Write	Logs
+		2	192.168.0.107:54164	Active	0	0.0 B / 607.3 MB	0.0 B	1	1	0	2412	2413	23 min (11 s)	0.0 B	721.6 KB	21.9 MB
+		stdout
+		stderr
+		1	192.168.0.108:53236	Active	0	0.0 B / 607.3 MB	0.0 B	1	1	0	486	487	5.1 min (5 s)	0.0 B	9.6 KB	32.7 MB
+		stdout
+		stderr
+		driver	192.168.0.101:58264	Active	0	0.0 B / 195.9 MB	0.0 B	0	0	0	0	0	0 ms (0 ms)	0.0 B	0.0 B	0.0 B
+		0	192.168.0.101:34963	Active	0	0.0 B / 607.3 MB	0.0 B	1	1	0	311	312	36 s (0.7 s)	0.0 B	0.0 B	8.7 MB
+		stdout
+		stderr
+
+		I have a SparkStreaming application reading message from kafka, all the task process data with locality of process_local.
+The speculation take effect and rerun task in other executor when a task pending in executor 0 (see the picture below)
+![task pending](https://imgchr.com/i/FWWMDS)
+
+But I find out that no task will assign to executor 0 after speculation take effect, and the data locality change form process_local to any, which cause more time to shechdule task
+![executor lost](https://imgchr.com/i/FWW3Nj)
+
+![cluster executor info](https://imgchr.com/i/FWWY3q)
+
+
+
+
+
+
+some config:
+
+    spark.speculation.interval	500ms
+    spark.scheduler.mode	FIFO
+    spark.streaming.kafka.maxRatePerPartition	100
+    spark.locality.wait	1s
+    spark.defalut.parallelism	6
+
+How can I make task assign to executor 0 again and recover the data locality from any to process_local?
+
+Why task will not assign to executor 0 any more?
+
+
+
+22:47:54
+
+-Xloggc:/usr/local/userlib/hbase-1.4.7/logs/regionserver_gc.log
+-Xloggc:/usr/local/userlib/hbase-1.4.7/logs/hmaster_gc.log
+
+-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/usr/local/userlib/hbase-1.4.7/logs/ -XX:+PrintGCDateStamps -XX:+PrintHeapAtGC -XX:+PrintTenuringDistribution -XX:+PrintCommandLineFlags -XX:+PrintGCDetails
+
+[海上搜救中心/165.7879266055773, 搜救/58.963776397217096, 马航/37.928121100934064, 失联/37.73918899084224, 船舶/36.84998226057439, 10日/36.3379425076612, 马航失联/34.24394495414346, 方案/30.98604044614512, 客机/29.990095913152885, 3月/27.158990825699984, 中国交通运输部/24.230543119276682, 南海/22.51564932444848, 中国/20.71154846472142, 新网/19.283014607922507, 海巡/17.159233364060835, 国家海上搜救/16.15369541285112, 溢油/15.6341321100986, 海上/15.597218114065974, 何建中/15.5621258477373, 会商/15.294986198741416]
+
+
+[米雪/155.15312239675708, 影片/148.30643403464046, 亚历/118.3414531226928, 拼贴/82.74907496206902, 导演/82.69526207978035, 朱利安/70.5873705472036, ---/68.50097844084107, 秩序/67.71517179854915, 意识形态/61.6142225776974, 自由/61.286995157478245, 眼疾/54.50922283011707, 流浪/50.55913867666436, 修补/50.06954679098873, 力量/50.0021973205776, 塞纳河/49.51847968095489, 爱情/46.84978434569517, 剪辑/45.91177159695434, 桥上/44.34917879500904, 底日/42.105666338819674, 落泊/40.287874925637354]
+
+
+./bin/spark-submit \
+--class spark.analysis.MovieKeyWords \
+--master spark://spark1:7077 \
+--executor-memory 1G \
+--num-executors 3 \
+--total-executor-cores 3 \
+--files "/usr/local/userlib/spark-2.2/conf/log4j-executor.properties" \
+--driver-java-options "-Dlog4j.debug=true -Dlog4j.configuration=log4j.properties -XX:+HeapDumpOnOutOfMemoryError
+-XX:HeapDumpPath=/usr/local/userlib/spark-2.2/logs/driver_oom.hprof
+-XX:+PrintGCDetails -Xloggc:/usr/local/userlib/spark-2.2/logs/driver_gc.log -XX:+PrintGCDateStamps -XX:+PrintHeapAtGC
+-XX:+PrintGCApplicationConcurrentTime -XX:+PrintGCApplicationStoppedTime" \
+--conf "spark.executor.extraJavaOptions=-Dlog4j.debug=true -Dlog4j.configuration=log4j-executor.properties -XX:+PrintGCDetails
+-Xloggc:/usr/local/userlib/spark-2.2/logs/executor_gc.log -XX:+PrintGCDateStamps -XX:+PrintHeapAtGC -XX:+UseG1GC
+-XX:+PrintTenuringDistribution -Xms400m -XX:+PrintCommandLineFlags -XX:+HeapDumpOnOutOfMemoryError
+-XX:HeapDumpPath=/usr/local/userlib/spark-2.2/logs/executor_oom.hprof" \
+/usr/local/userlib/jars/bigdata.jar
