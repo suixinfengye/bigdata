@@ -14,6 +14,7 @@ import org.apache.phoenix.spark._
 import org.apache.spark.internal.Logging
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
+import org.apache.spark.storage.StorageLevel
 import org.apache.spark.streaming.dstream.{DStream, InputDStream}
 import org.apache.spark.streaming.kafka010.ConsumerStrategies.Subscribe
 import org.apache.spark.streaming.kafka010.{KafkaUtils, LocationStrategies}
@@ -133,7 +134,7 @@ object StoreMovieEssay extends Logging {
       } else {
         List.empty
       }
-    }).filter(list => list.nonEmpty).cache()
+    }).filter(list => list.nonEmpty).persist(StorageLevel.MEMORY_AND_DISK)
     saveIntoHbase(batchRecordDS, spark, acc)
     streamingOpr(batchRecordDS, spark)
   }
@@ -189,8 +190,7 @@ object StoreMovieEssay extends Logging {
           logInfo("SteamingRecord:" + s.toString)
           s
         }
-    }.cache()
-
+    }.persist(StorageLevel.MEMORY_AND_DISK)
 
     //入库
     recordAgg.foreachRDD {
